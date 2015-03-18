@@ -1,16 +1,19 @@
 #ifndef __TEMPO_H_INCLUDED__
 #define __TEMPO_H_INCLUDED__
 
-class Tempo{
-	private:
-		unsigned int bpm;
-		bool isRunning;
-		static void* run(void*);
+#include <thread>
 
-	public:
-		Tempo(int beatsPerMinute);
-		void start();
-		void stop();
+class Tempo{
+private:
+	unsigned int bpm;
+	bool isRunning;
+	int run();
+
+public:
+	Tempo(int beatsPerMinute);
+	void start();
+	void stop();
+	std::thread *runThread;
 };
 
 #endif 
