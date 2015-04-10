@@ -5,6 +5,7 @@
 #include "NoteTrack.h"
 #include "PercussionTrack.h"
 #include <Vector>
+#include <mutex>
 
 class Tempo{
 	private:
@@ -17,11 +18,13 @@ class Tempo{
 	public:
 		std::vector<NoteTrack> noteTracks;
 		std::vector<PercussionTrack> percussionTracks;
-		Tempo(int beatsPerMinute);
+		std::mutex &mtx;
+		Tempo(int beatsPerMinute, std::mutex& mutex);
 		void start();
 		void stop();
 		void addNoteTones(std::vector<NoteTone> tones);
 		void addPercussionTones(std::vector<PercussionTone> tones);
+		//static void* testStuff(void*temp);  For testing
 };
 
 #endif

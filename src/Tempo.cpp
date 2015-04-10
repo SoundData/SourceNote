@@ -6,7 +6,7 @@
 #include <chrono>
 #include <cmath>	
 
-Tempo::Tempo(int beatsPerMinute) : bpm(beatsPerMinute) {};
+Tempo::Tempo(int beatsPerMinute, std::mutex& mutex) : bpm(beatsPerMinute), mtx(mutex) {};
 
 void Tempo::start(){
 	isRunning = true;
@@ -16,6 +16,8 @@ void Tempo::start(){
 		std::cout << "Error: Cannot create thread" << threadResult;
 		exit(-1);
 	}
+	//pthread_t thread1;
+	//threadResult = pthread_create(&thread1, NULL, &Tempo::testStuff, this);
 	//sleep(30);
 }
 
@@ -24,13 +26,21 @@ void Tempo::stop(){
 }
 
 void Tempo::addNoteTones(std::vector<NoteTone> tones){
+	while(!mtx.try_lock()){
+		continue;
+	}
 	NoteTrack track = NoteTrack(tones);
 	noteTracks.push_back(track);
+	mtx.unlock();
 }
 
 void Tempo::addPercussionTones(std::vector<PercussionTone> tones){
+	while(!mtx.try_lock()){
+		continue;
+	}
 	PercussionTrack track = PercussionTrack(tones);
 	percussionTracks.push_back(track);
+	mtx.unlock();
 }
 
 void* Tempo::run(void*temp){
@@ -57,6 +67,7 @@ void* Tempo::run(void*temp){
 
 	while(tempo->isRunning){
 		if (std::chrono::high_resolution_clock::now() >= nextBeatTime){
+
 			totalBeatsProduced++;
 			if(currentBeatPosition == (beatsInAQuarterNote*8)+1){ // 8 is how many quarter notes are in a 2 meaures
 				currentBeatPosition = 1;
@@ -77,13 +88,13 @@ void* Tempo::run(void*temp){
 			for (int i=0;i<notesForBeat.size();i++){
 				NoteTone note = notesForBeat[i];
 				/* Send to STK! */
-				//std::cout << "\n" << note.getFrequency() << "\n\n";
+				std::cout << "\n" << note.getFrequency() << "\n\n";
 			}
 
 			for (int i=0;i<percussionsForBeat.size();i++){
 				PercussionTone percussion = percussionsForBeat[i];
 				/* Send to STK! */
-				//std::cout << "\n" << percussion.getFileName() << "\n\n";
+				std::cout << "\n" << percussion.getFileName() << "\n\n";
 			}
 			currentBeatPosition++;
 		}else{
@@ -95,6 +106,9 @@ void* Tempo::run(void*temp){
 }
 
 std::vector<NoteTone> Tempo::getNoteTonesForBeatPosition(unsigned short int beatPosition){
+	while(!mtx.try_lock()){
+		continue;
+	}
 	std::vector<NoteTone> notesForBeat;
 	for(int i = 0; i < noteTracks.size(); i++){
 		NoteTrack track = noteTracks[i];
@@ -108,10 +122,14 @@ std::vector<NoteTone> Tempo::getNoteTonesForBeatPosition(unsigned short int beat
 			noteTracks.erase(noteTracks.begin() + i);
 		}
 	}
+	mtx.unlock();
 	return notesForBeat;
 }
 
 std::vector<PercussionTone> Tempo::getPercussionTonesForBeatPosition(unsigned short int beatPosition){
+	while(!mtx.try_lock()){
+		continue;
+	}
 	std::vector<PercussionTone> percussionsForBeat;
 	for(int i = 0; i < percussionTracks.size(); i++){
 		PercussionTrack track = percussionTracks[i];
@@ -121,13 +139,51 @@ std::vector<PercussionTone> Tempo::getPercussionTonesForBeatPosition(unsigned sh
 			percussionTracks.erase(percussionTracks.begin() + i);
 		}
 	}
+	mtx.unlock();
 	return percussionsForBeat;
 
 }
 
 /*
 int main(){
-	Tempo t = Tempo(120);
+	std::mutex mutex;
+	Tempo t = Tempo(120, mutex);
+	// std::vector<NoteTone> nv;
+	// nv.push_back(NoteTone(1,2,kSine,10.0));
+	// nv.push_back(NoteTone(10,11,kSine,2.0));
+	// nv.push_back(NoteTone(15,16,kSine,3.0));
+	// nv.push_back(NoteTone(16,17,kSine,4.0));
+	// nv.push_back(NoteTone(18,19,kSine,5.0));
+	// nv.push_back(NoteTone(20,21,kSine,6.0));
+	// nv.push_back(NoteTone(21,22,kSine,7.0));
+	// nv.push_back(NoteTone(22,23,kSine,8.0));
+	// nv.push_back(NoteTone(27,28,kSine,8.0));
+	// nv.push_back(NoteTone(28,29,kSine,8.0));
+	// nv.push_back(NoteTone(32,33,kSine,8.0));
+
+	// t.addNoteTones(nv);
+
+	// std::vector<PercussionTone> pv;
+	// pv.push_back(PercussionTone(5,"hi.wav"));
+	// pv.push_back(PercussionTone(6,"hi.wav"));
+	// pv.push_back(PercussionTone(7,"hi.wav"));
+	// pv.push_back(PercussionTone(15,"hi.wav"));
+	// pv.push_back(PercussionTone(16,"hi.wav"));
+	// pv.push_back(PercussionTone(25,"hi.wav"));
+	// pv.push_back(PercussionTone(26,"hi.wav"));
+	// pv.push_back(PercussionTone(27,"hi.wav"));
+	// pv.push_back(PercussionTone(28,"hi.wav"));
+	// NoteTone tone = NoteTone(5,6,kSine, 100.0f);
+	// t.start();
+
+
+	return 0;
+}
+
+
+void* Tempo::testStuff(void*temp){
+	Tempo *tempo = (Tempo*)temp;
+	std::this_thread::sleep_for(std::chrono::seconds(8));
 	std::vector<NoteTone> nv;
 	nv.push_back(NoteTone(1,2,kSine,10.0));
 	nv.push_back(NoteTone(10,11,kSine,2.0));
@@ -141,21 +197,9 @@ int main(){
 	nv.push_back(NoteTone(28,29,kSine,8.0));
 	nv.push_back(NoteTone(32,33,kSine,8.0));
 
-	t.addNoteTones(nv);
+	tempo->addNoteTones(nv);
 
-	std::vector<PercussionTone> pv;
-	pv.push_back(PercussionTone(5,"hi.wav"));
-	pv.push_back(PercussionTone(6,"hi.wav"));
-	pv.push_back(PercussionTone(7,"hi.wav"));
-	pv.push_back(PercussionTone(15,"hi.wav"));
-	pv.push_back(PercussionTone(16,"hi.wav"));
-	pv.push_back(PercussionTone(25,"hi.wav"));
-	pv.push_back(PercussionTone(26,"hi.wav"));
-	pv.push_back(PercussionTone(27,"hi.wav"));
-	pv.push_back(PercussionTone(28,"hi.wav"));
-	//NoteTone tone = NoteTone(5,6,kSine, 100.0f);
-	t.start();
-
-	return 0;
+	return NULL;
 }
+
 */
