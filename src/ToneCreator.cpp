@@ -8,6 +8,7 @@
 
 std::string fileNames[] = {"clap.wav", "snare.wav", "kick.wav", "chat.wav", "cowbell.wav", "cymbal.wav", "hconga.wav", "htom.wav", 
 "lconga.wav", "ltom.wav", "mconga.wav", "ohat.wav"};
+int findIndexOfNoteInKey(NoteTone note, std::vector<std::string> keyNotes);
 
 //ToneCreator::ToneCreator(std::vector<GameMessage> initialParameters) : intialParameters(intialParameters)
 ToneCreator::ToneCreator(){
@@ -52,60 +53,118 @@ void ToneCreator::initializeNoteData(){
 	this->noteFrequencies["G2"] = 783.99;
 	this->noteFrequencies["G#2"] = 830.61;
 
-	std::vector<std::string> cNotes;
-	cNotes.push_back("C");
-	cNotes.push_back("D");
-	cNotes.push_back("E");
-	cNotes.push_back("F");
-	cNotes.push_back("G");
-	cNotes.push_back("A");
-	cNotes.push_back("B");
-	keyNotes["C"] = cNotes;
+	/* Major scale */
+
+	std::vector<std::string> cMajorNotes;
+	cMajorNotes.push_back("C");
+	cMajorNotes.push_back("D");
+	cMajorNotes.push_back("E");
+	cMajorNotes.push_back("F");
+	cMajorNotes.push_back("G");
+	cMajorNotes.push_back("A");
+	cMajorNotes.push_back("B");
+	majorKeyNotes["C"] = cMajorNotes;
 	this->allKeys.push_back("C");
 
-
-	std::vector<std::string> dNotes;
-	dNotes.push_back("D");
-	dNotes.push_back("E");
-	dNotes.push_back("F#");
-	dNotes.push_back("G");
-	dNotes.push_back("A");
-	dNotes.push_back("B");
-	dNotes.push_back("C#");
-	keyNotes["D"] = dNotes;
+	std::vector<std::string> dMajorNotes;
+	dMajorNotes.push_back("D");
+	dMajorNotes.push_back("E");
+	dMajorNotes.push_back("F#");
+	dMajorNotes.push_back("G");
+	dMajorNotes.push_back("A");
+	dMajorNotes.push_back("B");
+	dMajorNotes.push_back("C#");
+	majorKeyNotes["D"] = dMajorNotes;
 	this->allKeys.push_back("D");
 
-	std::vector<std::string> gNotes;
-	gNotes.push_back("G");
-	gNotes.push_back("A");
-	gNotes.push_back("B");
-	gNotes.push_back("C");
-	gNotes.push_back("D");
-	gNotes.push_back("E");
-	gNotes.push_back("F#");
-	keyNotes["G"] = gNotes;
+	std::vector<std::string> gMajorNotes;
+	gMajorNotes.push_back("G");
+	gMajorNotes.push_back("A");
+	gMajorNotes.push_back("B");
+	gMajorNotes.push_back("C");
+	gMajorNotes.push_back("D");
+	gMajorNotes.push_back("E");
+	gMajorNotes.push_back("F#");
+	majorKeyNotes["G"] = gMajorNotes;
 	this->allKeys.push_back("G");
 
-	std::vector<std::string> aNotes;
-	aNotes.push_back("A");
-	aNotes.push_back("B");
-	aNotes.push_back("C#");
-	aNotes.push_back("D");
-	aNotes.push_back("E");
-	aNotes.push_back("F#");
-	aNotes.push_back("G#");
-	keyNotes["A"] = aNotes;
+	std::vector<std::string> aMajorNotes;
+	aMajorNotes.push_back("A");
+	aMajorNotes.push_back("B");
+	aMajorNotes.push_back("C#");
+	aMajorNotes.push_back("D");
+	aMajorNotes.push_back("E");
+	aMajorNotes.push_back("F#");
+	aMajorNotes.push_back("G#");
+	majorKeyNotes["A"] = aMajorNotes;
 	this->allKeys.push_back("A");
 
-	std::vector<std::string> eNotes;
-	eNotes.push_back("E");
-	eNotes.push_back("F#");
-	eNotes.push_back("G#");
-	eNotes.push_back("A");
-	eNotes.push_back("B");
-	eNotes.push_back("C#");
-	eNotes.push_back("D#");
-	keyNotes["E"] = eNotes;
+	std::vector<std::string> eMajorNotes;
+	eMajorNotes.push_back("E");
+	eMajorNotes.push_back("F#");
+	eMajorNotes.push_back("G#");
+	eMajorNotes.push_back("A");
+	eMajorNotes.push_back("B");
+	eMajorNotes.push_back("C#");
+	eMajorNotes.push_back("D#");
+	majorKeyNotes["E"] = eMajorNotes;
+	this->allKeys.push_back("E");
+
+	/* Minor scale */
+
+	std::vector<std::string> cMinorNotes;
+	cMinorNotes.push_back("C");
+	cMinorNotes.push_back("D");
+	cMinorNotes.push_back("Eb");
+	cMinorNotes.push_back("F");
+	cMinorNotes.push_back("G");
+	cMinorNotes.push_back("Ab");
+	cMinorNotes.push_back("Bb");
+	minorKeyNotes["C"] = cMinorNotes;
+	this->allKeys.push_back("C");
+
+	std::vector<std::string> dMinorNotes;
+	dMinorNotes.push_back("D");
+	dMinorNotes.push_back("E");
+	dMinorNotes.push_back("F");
+	dMinorNotes.push_back("G");
+	dMinorNotes.push_back("A");
+	dMinorNotes.push_back("Bb");
+	dMinorNotes.push_back("C");
+	minorKeyNotes["D"] = dMinorNotes;
+	this->allKeys.push_back("D");
+
+	std::vector<std::string> gMinorNotes;
+	gMinorNotes.push_back("G");
+	gMinorNotes.push_back("A");
+	gMinorNotes.push_back("Bb");
+	gMinorNotes.push_back("C");
+	gMinorNotes.push_back("D");
+	gMinorNotes.push_back("Eb");
+	gMinorNotes.push_back("F");
+	minorKeyNotes["G"] = gMinorNotes;
+	this->allKeys.push_back("G");
+
+	std::vector<std::string> aMinorNotes;
+	aMinorNotes.push_back("A");
+	aMinorNotes.push_back("B");
+	aMinorNotes.push_back("C");
+	aMinorNotes.push_back("D");
+	aMinorNotes.push_back("E");
+	aMinorNotes.push_back("F");
+	aMinorNotes.push_back("G");
+	minorKeyNotes["A"] = aMinorNotes;
+	this->allKeys.push_back("A");
+
+	std::vector<std::string> eMinorNotes;
+	eMinorNotes.push_back("E");
+	eMinorNotes.push_back("F#");
+	eMinorNotes.push_back("G");
+	eMinorNotes.push_back("A");
+	eMinorNotes.push_back("B");
+	eMinorNotes.push_back("C");
+	eMinorNotes.push_back("D");
+	minorKeyNotes["E"] = eMinorNotes;
 	this->allKeys.push_back("E");
 
 	fileNames[kSnare] = "snare.wav";
@@ -116,45 +175,45 @@ void ToneCreator::initializeNoteData(){
 
 NoteTone ToneCreator::makeToneWithNote(std::string note){
 	note += "1"; //In octave 1
-	return NoteTone(1,5, kSine, noteFrequencies.at(note));
+	return NoteTone(1,5, kSine, noteFrequencies.at(note), note);
 }
 
-NoteTone ToneCreator::makeRandomNoteInKeyAndOctave(std::string key, unsigned short int octave){
+NoteTone ToneCreator::makeRandomNoteInScaleAndKeyAndOctave(ScaleType scale, std::string key, unsigned short int octave){
 	currentKey = key;
-	std::vector<std::string> notesInKey = keyNotes[key];
+	std::vector<std::string> notesInKey = (scale == kMajor) ? majorKeyNotes[key] : minorKeyNotes[key];
 	int randomNoteInKeyIndex = rand() % notesInKey.size();
 	std::cout << notesInKey.size() << " random: " << randomNoteInKeyIndex << "\n";
 	std::string randomNote = notesInKey[randomNoteInKeyIndex];
 	randomNote += ('0' + octave);
-	return NoteTone(1,2,kSine,noteFrequencies[randomNote]);
+	return NoteTone(1,2,kSine,noteFrequencies[randomNote], randomNote);
 }
 
-NoteTone ToneCreator::makeRandomNoteInTimeFrameAndKeyAndOctave(unsigned short int startTime, unsigned short int endTime, std::string key, unsigned short int octave){
+NoteTone ToneCreator::makeRandomNoteInTimeFrameAndScaleAndKeyAndOctave(unsigned short int startTime, unsigned short int endTime, ScaleType scale, std::string key, unsigned short int octave){
 	//The startBeat and endBeat of the note can be on, or between, startTime and endTime 
-	std::vector<std::string> notesInKey = keyNotes[key];
+	std::vector<std::string> notesInKey = (scale == kMajor) ? majorKeyNotes[key] : minorKeyNotes[key];
 	int randomNoteIndex = rand() % notesInKey.size();
 	std::string randomNote = notesInKey[randomNoteIndex];
 	randomNote += ('0' + octave);
 	int startBeat = rand() % endTime + 1;
 	//For now, every note will be a 16th note long. So the endBeat will be startBeat+1
 	std::cout << "Random melody note: " << randomNote << " on beat:" << startBeat << "\n";
-	return NoteTone(startBeat,startBeat+1,kSine,noteFrequencies[randomNote]);
+	return NoteTone(startBeat,startBeat+1,kSine,noteFrequencies[randomNote], randomNote);
 }
 
-NoteTrack ToneCreator::makeRandomMelodyNotesInKeyAndOctave(std::string key, unsigned short int octave){
+NoteTrack ToneCreator::makeRandomMelodyNotesInScaleAndKeyAndOctave(ScaleType scale, std::string key, unsigned short int octave){
 	//For now, a melody will consist of 15 - 20 notes, 2 measures in length 
 	int randomNumberOfNotes = rand() % 6 + 15;
 	std::vector<NoteTone> notes;
 	currentKey = key;
 
 	for (int i = 0; i < randomNumberOfNotes; i++){
-		NoteTone newNote = makeRandomNoteInTimeFrameAndKeyAndOctave(1,32,"C", 1);
+		NoteTone newNote = makeRandomNoteInTimeFrameAndScaleAndKeyAndOctave(1, 32, scale, "C", 1);
 		notes.push_back(newNote);
 	}
 	return NoteTrack(notes);
 }
 
-NoteTrack ToneCreator::makeRandomMelodyNotesInRandomKeyAndRandomOctave(){
+NoteTrack ToneCreator::makeRandomMelodyNotesInRandomKeyAndRandomOctave(bool isMainMelody){
 	//For now, a melody will consist of 15 - 20 notes, 2 measures in length 
 	int randomNumberOfNotes = rand() % 6 + 15;
 	std::vector<NoteTone> notes;
@@ -163,12 +222,62 @@ NoteTrack ToneCreator::makeRandomMelodyNotesInRandomKeyAndRandomOctave(){
 	int randomOctave = rand() % 2 + 1;
 	std::cout << "Random melody in key:" << randomKey << " and octave:" << randomOctave << "\n";
 	for (int i = 0; i < randomNumberOfNotes; i++){
-		NoteTone newNote = makeRandomNoteInTimeFrameAndKeyAndOctave(1,32,randomKey, randomOctave);
+		NoteTone newNote = makeRandomNoteInTimeFrameAndScaleAndKeyAndOctave(1,32, kMajor, randomKey, randomOctave);
 		notes.push_back(newNote);
 	}
-	return NoteTrack(notes);
+	NoteTrack melody = NoteTrack(notes);
+	if (isMainMelody){
+		mainMelody = melody;
+	}
+	return melody;
 }
 
+NoteTrack ToneCreator::changeMainMelodyScale(ScaleType newScale, ScaleType oldScale){
+	std::vector<NoteTone> oldNotes;
+	std::unordered_map<unsigned short int, NoteTone>& noteMap = mainMelody.tones;
+	for (unsigned short int i = 1; i <= 32; i++){
+		if(noteMap.count(i) != 0){
+			oldNotes.push_back(noteMap[i]);
+		}
+	}
+	std::vector<NoteTone> newNotes;
+	/* use pointer later  */
+	std::vector<std::string> oldKeyNotes;
+	std::vector<std::string> newKeyNotes;
+
+	if(newScale == kMajor){
+		newKeyNotes = majorKeyNotes[currentKey];
+		oldKeyNotes = minorKeyNotes[currentKey];
+	}else{
+		oldKeyNotes = majorKeyNotes[currentKey];
+		newKeyNotes = minorKeyNotes[currentKey];
+	}
+
+	for(int i = 0; i < oldNotes.size(); i++){
+		NoteTone note = oldNotes[i];
+		 int noteNameSize = note.getNoteName().size();
+		 std::string octave = note.getNoteName().substr((noteNameSize-1),1);
+		// std::string noteLetter = note.getNoteName().substr(0,1); //ignore sharps or flats
+		std::string newNoteName = newKeyNotes[findIndexOfNoteInKey(note,oldKeyNotes)];
+		newNoteName += octave;
+		std::cout << "New note: " << newNoteName << "\n";
+		newNotes.push_back(NoteTone(note.getStartBeatPosition(), note.getEndBeatPosition(), note.getWaveform(), noteFrequencies.at(newNoteName), newNoteName));
+
+	}
+
+	return NoteTrack(newNotes);
+}
+
+int findIndexOfNoteInKey(NoteTone note, std::vector<std::string> keyNotes){
+	std::string noteNameWithoutOctave = note.getNoteName().substr(0,note.getNoteName().size()-1);
+	std::cout << "Searching for " << noteNameWithoutOctave << "\n";
+	for (int i = 0 ; i < keyNotes.size(); i++){
+		if(noteNameWithoutOctave == keyNotes[i]){
+			return i;
+		}
+	}
+	return -1;
+}
 
 PercussionTrack ToneCreator::makePercussionTrackWithTypeAndBeats(PercussionToneType type, std::vector<unsigned short int> beats){
 	std::cout << "Generating " << beats.size() << " beats\n";
@@ -272,7 +381,13 @@ int main(){
 	PercussionTrack track2 = tc.makeRandomBeatWithPercussionType(kKick);
 	**************/
 
-/*
+	/*
+	NoteTrack coolMelody = tc.makeRandomMelodyNotesInRandomKeyAndRandomOctave(true);
+	std::cout << "\n\nNow the scale change:\n";
+	NoteTrack coolMelodyInMinor = tc.changeMainMelodyScale(kMinor, kMajor);
+
+
 	return 0;
 }
 */
+
