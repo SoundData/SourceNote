@@ -24,7 +24,7 @@ class NoteTone: public Tone{
 		 * Ex: "C1" "Bb2" "C#2" */
 
 	public:
-		NoteTone(unsigned short int endBeat, unsigned short int startBeat, WaveForm waveform, float frequency, std::string name);
+		NoteTone(unsigned short int startBeat, unsigned short int endBeat, WaveForm waveform, float frequency, std::string name);
 		NoteTone(){}; //Required to access a NoteTone in a vector of NoteTones. My research suggests its a Clang specific issue.
 		unsigned short int getEndBeatPosition();
 		WaveForm getWaveform();

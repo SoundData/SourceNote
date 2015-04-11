@@ -18,6 +18,7 @@
 #include <thread>
 #include <chrono>
 #include <cmath>
+#include <vector>
 
 #define S_RATE 44100
 
@@ -29,23 +30,34 @@ using namespace stk;
 int main(void) {
 	
 	Stk::setSampleRate( (float) S_RATE );
+	Stk::setRawwavePath( "samples/rawwaves/" );
 	
-	NoteTone *a = new NoteTone(1, 2, kSine, 440.0);
-	PercussionTone *b = new PercussionTone(1, "kick.wav");
+	NoteTone *a = new NoteTone(0, 32, kSine, 220.00, "A3");
+	NoteTone *c = new NoteTone(0, 4, kSine, 329.63, "E4");
 	
-	Toolkit tk = Toolkit();
+	//PercussionTone *b = new PercussionTone(1, "kick.wav");
 	
-	//
-	// tk.playTone(0, 2, "sine", 440.0);
+	Toolkit tk = Toolkit(125000);
+	
+	tk.startStream();
+	
 	tk.playNoteTone(a);
-	tk.playPercussionTone(b);
 	
-	//tk.startStream();
+	Stk::sleep(1000);
+	tk.playNoteTone(c);
+	Stk::sleep(1000);
+	tk.playNoteTone(c);
+	Stk::sleep(1000);
+	tk.playNoteTone(c);
+	Stk::sleep(2000);
 	
-	//Stk::sleep(5000);
+	tk.stopStream();
 	
-	//tk.stopStream();
 	
+	
+	// tk.playTone(0, 2, "sine", 440.0);
+	//tk.playNoteTone(a);
+	//tk.playPercussionTone(b);
 	
 	return 0;
 }
