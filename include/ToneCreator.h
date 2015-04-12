@@ -52,7 +52,6 @@ class ToneCreator{
 		void initializeNoteData();
 
 	public:
-		//Tempo(std::vector<GameMessage> initialParameters);
 		ToneCreator();
 		NoteTone makeToneWithNote(std::string note);
 		NoteTone makeRandomNoteInScaleAndKeyAndOctave(ScaleType scale, std::string key, unsigned short int octave);

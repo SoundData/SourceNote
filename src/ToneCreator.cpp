@@ -6,6 +6,7 @@
 #include <time.h>
 #include <string>
 
+
 std::string fileNames[] = {"clap.wav", "snare.wav", "kick.wav", "chat.wav", "cowbell.wav", "cymbal.wav", "hconga.wav", "htom.wav", 
 "lconga.wav", "ltom.wav", "mconga.wav", "ohat.wav"};
 int findIndexOfNoteInKey(NoteTone note, std::vector<std::string> keyNotes);
@@ -228,6 +229,7 @@ NoteTrack ToneCreator::makeRandomMelodyNotesInRandomKeyAndRandomOctave(bool isMa
 	NoteTrack melody = NoteTrack(notes);
 	if (isMainMelody){
 		mainMelody = melody;
+		melody.continous = true;
 	}
 	return melody;
 }

@@ -5,6 +5,7 @@
 #include <thread>
 #include <chrono>
 #include <cmath>	
+#include "Toolkit.h"
 
 Tempo::Tempo(int beatsPerMinute, std::mutex& mutex) : bpm(beatsPerMinute), mtx(mutex) {};
 
@@ -43,6 +44,22 @@ void Tempo::addPercussionTones(std::vector<PercussionTone> tones){
 	mtx.unlock();
 }
 
+void Tempo::addNoteTrack(NoteTrack track){
+	while(!mtx.try_lock()){
+		continue;
+	}
+	noteTracks.push_back(track);
+	mtx.unlock();
+}
+
+void Tempo::addPercussionTrack(PercussionTrack track){
+	while(!mtx.try_lock()){
+		continue;
+	}
+	percussionTracks.push_back(track);
+	mtx.unlock();
+}
+
 void* Tempo::run(void*temp){
 	unsigned short int beatsInAQuarterNote = 4;
 	/* 'beatsInAQuarterNote' defines how many times we fetch new tones between every quarter note.
@@ -61,6 +78,9 @@ void* Tempo::run(void*temp){
 	unsigned short int currentBeatPosition = 1; // gives the current subBeat position in the standard two measure interval (loops from 1 to 32 when beatsInAQuarterNote = 4)
 	/* Similar to written music, beat 1 starts at time 0 and there is no beat 0. */
 
+	Toolkit tk = Toolkit(sampleLength);
+	tk.startStream();
+
 	auto sampleLengthMicros = std::chrono::microseconds(sampleLength);
 	auto beatZeroTime = std::chrono::high_resolution_clock::now();
 	auto nextBeatTime = beatZeroTime + 1 * sampleLengthMicros;
@@ -73,11 +93,11 @@ void* Tempo::run(void*temp){
 				currentBeatPosition = 1;
 			}
 			/* On a beat (Or 16th note assuming beatsInAQuarterNote == 4) */
-			std::cout << "* ";
+			//std::cout << "* ";
 			if((currentBeatPosition-1)%beatsInAQuarterNote == 0){
 				std::cout << "Quarter " << totalBeatsProduced/beatsInAQuarterNote << "\n";
 			}else{
-				std::cout << "\n";
+				//std::cout << "\n";
 			}
 			nextBeatTime = beatZeroTime + totalBeatsProduced * sampleLengthMicros;
 
@@ -85,16 +105,17 @@ void* Tempo::run(void*temp){
 			std::vector<NoteTone> notesForBeat = tempo->getNoteTonesForBeatPosition(currentBeatPosition);
 			std::vector<PercussionTone> percussionsForBeat = tempo->getPercussionTonesForBeatPosition(currentBeatPosition);
 
-			for (int i=0;i<notesForBeat.size();i++){
+			for (int i = 0; i < notesForBeat.size(); i++){
 				NoteTone note = notesForBeat[i];
 				/* Send to STK! */
-				std::cout << "\n" << note.getFrequency() << "\n\n";
+				tk.playNoteTone(&note);
+				//std::cout << "\n" << note.getFrequency() << "\n\n";
 			}
 
-			for (int i=0;i<percussionsForBeat.size();i++){
+			for (int i = 0; i < percussionsForBeat.size(); i++){
 				PercussionTone percussion = percussionsForBeat[i];
 				/* Send to STK! */
-				std::cout << "\n" << percussion.getFileName() << "\n\n";
+				//std::cout << "\n" << percussion.getFileName() << "\n\n";
 			}
 			currentBeatPosition++;
 		}else{
@@ -110,16 +131,27 @@ std::vector<NoteTone> Tempo::getNoteTonesForBeatPosition(unsigned short int beat
 		continue;
 	}
 	std::vector<NoteTone> notesForBeat;
+
+	bool decrementRepeatCounters = (beatPosition == 32) ? true : false;
+
 	for(int i = 0; i < noteTracks.size(); i++){
 		NoteTrack track = noteTracks[i];
 		if(track.tones.count(beatPosition) == 0){
 			/* checks if the track does not have a note for the beatPosition */
+			if(decrementRepeatCounters && !track.continous){
+				track.repeatCount--;
+				if(track.repeatCount == -1 && !track.continous){
+					noteTracks.erase(noteTracks.begin() + i);
+				}
+			}
 			continue;
 		}
 		notesForBeat.push_back(track.tones[beatPosition]);
-		track.repeatCount--;
-		if(track.repeatCount == -1 && !track.continous){
-			noteTracks.erase(noteTracks.begin() + i);
+		if(decrementRepeatCounters && !track.continous){
+			track.repeatCount--;
+			if(track.repeatCount == -1 && !track.continous){
+				noteTracks.erase(noteTracks.begin() + i);
+			}
 		}
 	}
 	mtx.unlock();

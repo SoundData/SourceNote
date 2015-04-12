@@ -2,7 +2,8 @@
 #include "Toolkit.h"
 #include "Tempo.h"
 #include "NoteTone.h"
-#include "NoteTone.h"
+#include "ToneCreator.h"
+#include "NoteTrack.h"
 
 // STK
 #include "Instrmnt.h"
@@ -19,6 +20,7 @@
 #include <chrono>
 #include <cmath>
 #include <vector>
+#include <mutex>
 
 #define S_RATE 44100
 
@@ -32,27 +34,25 @@ int main(void) {
 	Stk::setSampleRate( (float) S_RATE );
 	Stk::setRawwavePath( "samples/rawwaves/" );
 	
-	NoteTone *a = new NoteTone(0, 32, kSine, 220.00, "A3");
-	NoteTone *c = new NoteTone(0, 4, kSine, 329.63, "E4");
-	
+	std::mutex mutex;
+	Tempo t = Tempo(120, mutex);
+	ToneCreator tc = ToneCreator();
+	NoteTrack nt = tc.makeRandomMelodyNotesInRandomKeyAndRandomOctave(true);
+	nt.continous = true;
+
+	t.addNoteTrack(nt);
+	t.start();
+	sleep(10);
+
+	NoteTrack nt2 = tc.makeRandomMelodyNotesInRandomKeyAndRandomOctave(false);
+	nt2.continous = true;
+
+	t.addNoteTrack(nt2);
+	sleep(10);
+
 	//PercussionTone *b = new PercussionTone(1, "kick.wav");
 	
-	Toolkit tk = Toolkit(125000);
-	
-	tk.startStream();
-	
-	tk.playNoteTone(a);
-	
-	Stk::sleep(1000);
-	tk.playNoteTone(c);
-	Stk::sleep(1000);
-	tk.playNoteTone(c);
-	Stk::sleep(1000);
-	tk.playNoteTone(c);
-	Stk::sleep(2000);
-	
-	tk.stopStream();
-	
+		
 	
 	
 	// tk.playTone(0, 2, "sine", 440.0);

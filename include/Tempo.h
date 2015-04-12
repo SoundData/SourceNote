@@ -24,6 +24,8 @@ class Tempo{
 		void stop();
 		void addNoteTones(std::vector<NoteTone> tones);
 		void addPercussionTones(std::vector<PercussionTone> tones);
+		void addNoteTrack(NoteTrack track);
+		void addPercussionTrack(PercussionTrack track);
 		//static void* testStuff(void*temp);  For testing
 };
 
