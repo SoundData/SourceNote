@@ -17,7 +17,7 @@ class PercussionTrack{
 		PercussionTrack(std::vector<PercussionTone> toneList);
 		std::unordered_map<unsigned short int, PercussionTone> tones;
 		bool continous; // does it repeat forever ?
-		unsigned int repeatCount; // if not continous, how many 2 measure intervals it will repeat for (0 means it will play only once and never repeat)
+		int repeatCount; // if not continous, how many 2 measure intervals it will repeat for (0 means it will play only once and never repeat)
 };
 
 #endif 

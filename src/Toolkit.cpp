@@ -1,5 +1,4 @@
 #include "Toolkit.h"
-#include <cmath>
 #define TOOLKIT_DEBUG 0
 
 using std::min;
@@ -113,7 +112,7 @@ void Toolkit::playNoteTone(NoteTone *t) {
 	for(int i = 0; i < MAX_VOICES; i++) {
 		if(data->samplesLeft[i] == 0) {
 			
-			int duration = (int) samplesBetweenBeats * std::abs(t->getEndBeatPosition() - t->getStartBeatPosition());
+			int duration = (int) samplesBetweenBeats * (t->getEndBeatPosition() - t->getStartBeatPosition());
 			
 			std::cout << "The duration of this note is " << duration << " samples.\n";
 			

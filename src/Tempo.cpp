@@ -60,6 +60,15 @@ void Tempo::addPercussionTrack(PercussionTrack track){
 	mtx.unlock();
 }
 
+void Tempo::addMainMelodyTrack(NoteTrack track){
+	while(!mtx.try_lock()){
+		continue;
+	}
+	mainMelodyTrack = track;
+	permanentMainMelodyTrack = track;
+	mtx.unlock();
+}
+
 void* Tempo::run(void*temp){
 	unsigned short int beatsInAQuarterNote = 4;
 	/* 'beatsInAQuarterNote' defines how many times we fetch new tones between every quarter note.
@@ -95,7 +104,7 @@ void* Tempo::run(void*temp){
 			/* On a beat (Or 16th note assuming beatsInAQuarterNote == 4) */
 			//std::cout << "* ";
 			if((currentBeatPosition-1)%beatsInAQuarterNote == 0){
-				std::cout << "Quarter " << totalBeatsProduced/beatsInAQuarterNote << "\n";
+				std::cout << "********** Quarter beat #" << totalBeatsProduced/beatsInAQuarterNote << " **********\n";
 			}else{
 				//std::cout << "\n";
 			}
@@ -111,6 +120,12 @@ void* Tempo::run(void*temp){
 				tk.playNoteTone(&note);
 				//std::cout << "\n" << note.getFrequency() << "\n\n";
 			}
+			/* Check main melody */
+			if (tempo->mainMelodyTrack.tones.count(currentBeatPosition) != 0){
+				NoteTone mainMelodyNote = tempo->mainMelodyTrack.tones[currentBeatPosition];
+				tk.playNoteTone(&mainMelodyNote);
+			}
+			tempo->checkMainMelodyRepition(currentBeatPosition);
 
 			for (int i = 0; i < percussionsForBeat.size(); i++){
 				PercussionTone percussion = percussionsForBeat[i];
@@ -131,16 +146,14 @@ std::vector<NoteTone> Tempo::getNoteTonesForBeatPosition(unsigned short int beat
 		continue;
 	}
 	std::vector<NoteTone> notesForBeat;
-
 	bool decrementRepeatCounters = (beatPosition == 32) ? true : false;
-
 	for(int i = 0; i < noteTracks.size(); i++){
-		NoteTrack track = noteTracks[i];
+		NoteTrack& track = noteTracks[i];
 		if(track.tones.count(beatPosition) == 0){
 			/* checks if the track does not have a note for the beatPosition */
 			if(decrementRepeatCounters && !track.continous){
 				track.repeatCount--;
-				if(track.repeatCount == -1 && !track.continous){
+				if(track.repeatCount == -1){
 					noteTracks.erase(noteTracks.begin() + i);
 				}
 			}
@@ -149,7 +162,7 @@ std::vector<NoteTone> Tempo::getNoteTonesForBeatPosition(unsigned short int beat
 		notesForBeat.push_back(track.tones[beatPosition]);
 		if(decrementRepeatCounters && !track.continous){
 			track.repeatCount--;
-			if(track.repeatCount == -1 && !track.continous){
+			if(track.repeatCount == -1){
 				noteTracks.erase(noteTracks.begin() + i);
 			}
 		}
@@ -163,17 +176,57 @@ std::vector<PercussionTone> Tempo::getPercussionTonesForBeatPosition(unsigned sh
 		continue;
 	}
 	std::vector<PercussionTone> percussionsForBeat;
+	bool decrementRepeatCounters = (beatPosition == 32) ? true : false;
 	for(int i = 0; i < percussionTracks.size(); i++){
-		PercussionTrack track = percussionTracks[i];
+		PercussionTrack& track = percussionTracks[i];
+		if(track.tones.count(beatPosition) == 0){
+			if(decrementRepeatCounters && !track.continous){
+				track.repeatCount--;
+				if(track.repeatCount == -1){
+					percussionTracks.erase(percussionTracks.begin() + i);
+				}
+			}
+			continue;
+		}
 		percussionsForBeat.push_back(track.tones[beatPosition]);
-		track.repeatCount--;
-		if(track.repeatCount == -1 && !track.continous){
-			percussionTracks.erase(percussionTracks.begin() + i);
+		if(decrementRepeatCounters && !track.continous){
+			track.repeatCount--;
+			if(track.repeatCount == -1){
+				percussionTracks.erase(percussionTracks.begin() + i);
+			}
 		}
 	}
 	mtx.unlock();
 	return percussionsForBeat;
 
+}
+
+void Tempo::checkMainMelodyRepition(unsigned short int beatPosition){
+	/* Assumes we already checked that the note exists */
+	while(!mtx.try_lock()){
+		continue;
+	}
+	NoteTrack& track = mainMelodyTrack;
+	bool decrementRepeatCounter = (beatPosition == 32) ? true : false;
+	if(!track.continous && decrementRepeatCounter){
+		track.repeatCount--;
+		if(track.repeatCount == -1){
+			mainMelodyTrack = permanentMainMelodyTrack;
+		}
+	}
+	mtx.unlock();
+	return;
+}
+
+void Tempo::replaceMainMelody(NoteTrack newMelody){
+	while(!mtx.try_lock()){
+		continue;
+	}
+	mainMelodyTrack = newMelody;
+	if(newMelody.continous){
+		permanentMainMelodyTrack = newMelody;
+	}
+	mtx.unlock();
 }
 
 /*

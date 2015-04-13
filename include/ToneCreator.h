@@ -48,7 +48,6 @@ class ToneCreator{
 		std::string currentKey;
 		std::vector <std::string> allKeys;
 		NoteTrack mainMelody;
-
 		void initializeNoteData();
 
 	public:
@@ -60,6 +59,8 @@ class ToneCreator{
 		NoteTone makeRandomNoteInTimeFrameAndScaleAndKeyAndOctave(unsigned short int startTime, unsigned short int endTime, ScaleType scale, std::string key, unsigned short int octave);
 		/* StartTime and endTime should be a 16th note beat within a 2 measure interval, so between 1 and 32. */
 		NoteTrack makeRandomMelodyNotesInScaleAndKeyAndOctave(ScaleType scale, std::string key, unsigned short int octave);
+		NoteTrack makeRandomMelodyNotesInRandomKeyWithOctave(int octave, bool isMainMelody);
+		/* Octave can be 1 thorugh 2 */
 		NoteTrack makeRandomMelodyNotesInRandomKeyAndRandomOctave(bool isMainMelody);
 		/* Major scale by default */
 		NoteTrack changeMainMelodyScale(ScaleType newScale, ScaleType oldScale);

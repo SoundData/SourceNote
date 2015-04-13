@@ -37,19 +37,26 @@ int main(void) {
 	std::mutex mutex;
 	Tempo t = Tempo(120, mutex);
 	ToneCreator tc = ToneCreator();
-	NoteTrack nt = tc.makeRandomMelodyNotesInRandomKeyAndRandomOctave(true);
-	nt.continous = true;
+	NoteTrack nt = tc.makeRandomMelodyNotesInRandomKeyWithOctave(1,true); //octave 1, main melody
+	nt.continous = false;
+	nt.repeatCount = 1;
 
 	t.addNoteTrack(nt);
 	t.start();
-	sleep(10);
+	sleep(5);
 
-	NoteTrack nt2 = tc.makeRandomMelodyNotesInRandomKeyAndRandomOctave(false);
+	NoteTrack nt2 = tc.makeRandomMelodyNotesInRandomKeyWithOctave(1,false);
 	nt2.continous = true;
 
 	t.addNoteTrack(nt2);
-	sleep(10);
+	sleep(5);
 
+
+	NoteTrack nt3 = tc.makeRandomMelodyNotesInRandomKeyWithOctave(2,false);
+	nt3.continous = true;
+
+	t.addNoteTrack(nt3);
+	sleep(20);
 	//PercussionTone *b = new PercussionTone(1, "kick.wav");
 	
 		

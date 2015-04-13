@@ -214,6 +214,25 @@ NoteTrack ToneCreator::makeRandomMelodyNotesInScaleAndKeyAndOctave(ScaleType sca
 	return NoteTrack(notes);
 }
 
+NoteTrack ToneCreator::makeRandomMelodyNotesInRandomKeyWithOctave(int octave, bool isMainMelody){
+	//For now, a melody will consist of 15 - 20 notes, 2 measures in length 
+	int randomNumberOfNotes = rand() % 6 + 15;
+	std::vector<NoteTone> notes;
+	std::string randomKey = allKeys[rand() % allKeys.size()];
+	currentKey = randomKey;
+	std::cout << "Random melody in key:" << randomKey << " and octave:" << octave << "\n";
+	for (int i = 0; i < randomNumberOfNotes; i++){
+		NoteTone newNote = makeRandomNoteInTimeFrameAndScaleAndKeyAndOctave(1,32, kMajor, randomKey, octave);
+		notes.push_back(newNote);
+	}
+	NoteTrack melody = NoteTrack(notes);
+	if (isMainMelody){
+		mainMelody = melody;
+		melody.continous = true;
+	}
+	return melody;
+}
+
 NoteTrack ToneCreator::makeRandomMelodyNotesInRandomKeyAndRandomOctave(bool isMainMelody){
 	//For now, a melody will consist of 15 - 20 notes, 2 measures in length 
 	int randomNumberOfNotes = rand() % 6 + 15;
@@ -235,6 +254,7 @@ NoteTrack ToneCreator::makeRandomMelodyNotesInRandomKeyAndRandomOctave(bool isMa
 }
 
 NoteTrack ToneCreator::changeMainMelodyScale(ScaleType newScale, ScaleType oldScale){
+	std::cout << currentKey << "\n";
 	std::vector<NoteTone> oldNotes;
 	std::unordered_map<unsigned short int, NoteTone>& noteMap = mainMelody.tones;
 	for (unsigned short int i = 1; i <= 32; i++){
@@ -257,27 +277,26 @@ NoteTrack ToneCreator::changeMainMelodyScale(ScaleType newScale, ScaleType oldSc
 
 	for(int i = 0; i < oldNotes.size(); i++){
 		NoteTone note = oldNotes[i];
-		 int noteNameSize = note.getNoteName().size();
-		 std::string octave = note.getNoteName().substr((noteNameSize-1),1);
+		int noteNameSize = note.getNoteName().size();
+		std::string octave = note.getNoteName().substr((noteNameSize-1),1);
 		// std::string noteLetter = note.getNoteName().substr(0,1); //ignore sharps or flats
 		std::string newNoteName = newKeyNotes[findIndexOfNoteInKey(note,oldKeyNotes)];
 		newNoteName += octave;
-		std::cout << "New note: " << newNoteName << "\n";
+		//std::cout << "New note: " << newNoteName << "\n";
 		newNotes.push_back(NoteTone(note.getStartBeatPosition(), note.getEndBeatPosition(), note.getWaveform(), noteFrequencies.at(newNoteName), newNoteName));
-
 	}
-
 	return NoteTrack(newNotes);
 }
 
 int findIndexOfNoteInKey(NoteTone note, std::vector<std::string> keyNotes){
 	std::string noteNameWithoutOctave = note.getNoteName().substr(0,note.getNoteName().size()-1);
-	std::cout << "Searching for " << noteNameWithoutOctave << "\n";
+	//std::cout << "Searching for " << noteNameWithoutOctave << "\n";
 	for (int i = 0 ; i < keyNotes.size(); i++){
 		if(noteNameWithoutOctave == keyNotes[i]){
 			return i;
 		}
 	}
+	std::cout << "Uh Oh!\n"; 
 	return -1;
 }
 

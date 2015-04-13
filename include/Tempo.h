@@ -11,9 +11,12 @@ class Tempo{
 	private:
 		unsigned int bpm;
 		bool isRunning;
+		NoteTrack mainMelodyTrack;
+		NoteTrack permanentMainMelodyTrack;
 		static void* run(void*);
 		std::vector<NoteTone> getNoteTonesForBeatPosition(unsigned short int beatPosition);
 		std::vector<PercussionTone> getPercussionTonesForBeatPosition(unsigned short int beatPosition);
+		void checkMainMelodyRepition(unsigned short int beatPosition);
 
 	public:
 		std::vector<NoteTrack> noteTracks;
@@ -26,6 +29,8 @@ class Tempo{
 		void addPercussionTones(std::vector<PercussionTone> tones);
 		void addNoteTrack(NoteTrack track);
 		void addPercussionTrack(PercussionTrack track);
+		void addMainMelodyTrack(NoteTrack track);
+		void replaceMainMelody(NoteTrack newMelody);
 		//static void* testStuff(void*temp);  For testing
 };
 
