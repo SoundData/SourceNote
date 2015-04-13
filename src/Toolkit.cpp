@@ -4,6 +4,7 @@
 using std::min;
 using namespace stk;
 
+//Toolkit::Toolkit(int microSecondsBetween, std::string samplePath) {
 Toolkit::Toolkit(int microSecondsBetween) {
 	samplesBetweenBeats = (StkFloat) microSecondsBetween * (Stk::sampleRate() / 1000000);
 	
@@ -112,7 +113,17 @@ void Toolkit::playNoteTone(NoteTone *t) {
 	for(int i = 0; i < MAX_VOICES; i++) {
 		if(data->samplesLeft[i] == 0) {
 			
-			int duration = (int) samplesBetweenBeats * (t->getEndBeatPosition() - t->getStartBeatPosition());
+			
+			unsigned int beatDuration;
+			
+			if(t->getEndBeatPosition() > t->getStartBeatPosition()) {
+				beatDuration = t->getEndBeatPosition() - t->getStartBeatPosition();
+			} else {
+				// THIS IS HARD CODED TO 32 BUT LATER WE WILL NEED TO UPDATE IT TO THE MAX
+				beatDuration = -1 * (t->getStartBeatPosition() - (t->getEndBeatPosition() + 32 + 1));
+			}
+			
+			int duration = (int) samplesBetweenBeats * (beatDuration);
 			
 			std::cout << "The duration of this note is " << duration << " samples.\n";
 			
@@ -149,12 +160,11 @@ void Toolkit::removeVoice(ToneData *tdata, int group) {
 	
 }
 
-/*void Toolkit::playNoteTomes(std::vector<NoteTone> tones) {
-	int i;
-	for(i=0; i < tones.size(); i++) {
-		// playNoteTone()
+void Toolkit::playNoteTones(std::vector<NoteTone> tones) {
+	for(int i=0; i < tones.size(); i++) {
+		//Toolkit::playNoteTone(tones[i]);
 	}
-}*/
+}
 
 void Toolkit::playPercussionTone(PercussionTone *t) {
 	std::cout << "Playing perc tone '" << t->getFileName() << "'.\n";

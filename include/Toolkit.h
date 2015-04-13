@@ -7,12 +7,14 @@
 // std lib
 #include <iostream>
 #include <string>
+#include <vector>
 
 // stk
 #include "RtAudio.h"
 #include "Voicer.h"
 #include "BeeThree.h"
 #include "SineWave.h"
+#include "FileRead.h"
 
 // our stuff
 #include "NoteTone.h"
@@ -47,9 +49,9 @@ class Toolkit {
 		int stopStream(void);
 		void playTone(unsigned int start, int duration, std::string waveform, float freq);
 		void playNoteTone(NoteTone *t);
+		void playNoteTones(std::vector<NoteTone> tones);
 		void playPercussionTone(PercussionTone *t);
 		static int mainTick(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *dataPointer);
-		
 };
 
 
