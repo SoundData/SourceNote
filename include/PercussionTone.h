@@ -10,7 +10,7 @@ class PercussionTone: public Tone{
 
 	public:
 		PercussionTone(unsigned int startTime, std::string fileName);
-		PercussionTone(){}; //Required to access a NoteTone in a vector of NoteTones. My research suggests its a Clang specific issue.
+		PercussionTone(){};
 		std::string getFileName();
 };
 

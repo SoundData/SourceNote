@@ -26,6 +26,10 @@ void Tempo::stop(){
 	isRunning = false;
 }
 
+void Tempo::setNewBPM(int bpm){
+	this->bpm = bpm;
+}
+
 void Tempo::addNoteTones(std::vector<NoteTone> tones){
 	while(!mtx.try_lock()){
 		continue;
@@ -52,11 +56,19 @@ void Tempo::addNoteTrack(NoteTrack track){
 	mtx.unlock();
 }
 
-void Tempo::addPercussionTrack(PercussionTrack track){
+void Tempo::addPercussionTrack(PercussionTrack track, bool removeAllExistingPercussionTracks){
 	while(!mtx.try_lock()){
 		continue;
 	}
-	percussionTracks.push_back(track);
+	if (removeAllExistingPercussionTracks){
+		/* make this better later ! */
+		std::vector<PercussionTrack> newPercussionTracks;
+		newPercussionTracks.push_back(track);
+		percussionTracks = newPercussionTracks;
+	}else{
+		percussionTracks.push_back(track);
+	}
+
 	mtx.unlock();
 }
 

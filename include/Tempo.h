@@ -25,10 +25,11 @@ class Tempo{
 		Tempo(int beatsPerMinute, std::mutex& mutex);
 		void start();
 		void stop();
+		void setNewBPM(int bpm); // set initial bpm in the constructor
 		void addNoteTones(std::vector<NoteTone> tones);
 		void addPercussionTones(std::vector<PercussionTone> tones);
 		void addNoteTrack(NoteTrack track);
-		void addPercussionTrack(PercussionTrack track);
+		void addPercussionTrack(PercussionTrack track, bool removeAllExistingPercussionTracks);
 		void addMainMelodyTrack(NoteTrack track);
 		void replaceMainMelody(NoteTrack newMelody);
 		//static void* testStuff(void*temp);  For testing

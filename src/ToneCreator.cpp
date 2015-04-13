@@ -253,8 +253,11 @@ NoteTrack ToneCreator::makeRandomMelodyNotesInRandomKeyAndRandomOctave(bool isMa
 	return melody;
 }
 
-NoteTrack ToneCreator::changeMainMelodyScale(ScaleType newScale, ScaleType oldScale){
+NoteTrack ToneCreator::makeMainMelodyScaleInNewScale(ScaleType newScale, ScaleType oldScale){
 	std::cout << currentKey << "\n";
+	if(newScale == oldScale){
+		return mainMelody;
+	}
 	std::vector<NoteTone> oldNotes;
 	std::unordered_map<unsigned short int, NoteTone>& noteMap = mainMelody.tones;
 	for (unsigned short int i = 1; i <= 32; i++){

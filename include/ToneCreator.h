@@ -63,7 +63,7 @@ class ToneCreator{
 		/* Octave can be 1 thorugh 2 */
 		NoteTrack makeRandomMelodyNotesInRandomKeyAndRandomOctave(bool isMainMelody);
 		/* Major scale by default */
-		NoteTrack changeMainMelodyScale(ScaleType newScale, ScaleType oldScale);
+		NoteTrack makeMainMelodyScaleInNewScale(ScaleType newScale, ScaleType oldScale);
 		NoteTrack makeRandomMelodyInCurrentKeyAndInRange(unsigned short int minimumNumberOfNotes, unsigned short int maximumNumberOfNotes);
 		/* DO NOT CALL if no main melody has been created! If you haven't, there is no current key. Bad things will happen */
 
