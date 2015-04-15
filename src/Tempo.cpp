@@ -7,6 +7,12 @@
 #include <cmath>	
 #include "Toolkit.h"
 
+#define S_RATE 44100
+#define DEBUG 0
+
+using std::min;
+using namespace stk;
+
 Tempo::Tempo(int beatsPerMinute, std::mutex& mutex) : bpm(beatsPerMinute), mtx(mutex) {};
 
 void Tempo::start(){
@@ -82,6 +88,9 @@ void Tempo::addMainMelodyTrack(NoteTrack track){
 }
 
 void* Tempo::run(void*temp){
+	Stk::setSampleRate((float) S_RATE);
+	Stk::setRawwavePath("samples/rawwaves/");
+
 	unsigned short int beatsInAQuarterNote = 4;
 	/* 'beatsInAQuarterNote' defines how many times we fetch new tones between every quarter note.
 	 * If equal to 4, a single measure will have 16 beats (4 quater notes with each having 4 16th notes)
@@ -108,29 +117,25 @@ void* Tempo::run(void*temp){
 
 	while(tempo->isRunning){
 		if (std::chrono::high_resolution_clock::now() >= nextBeatTime){
-
 			totalBeatsProduced++;
-			if(currentBeatPosition == (beatsInAQuarterNote*8)+1){ // 8 is how many quarter notes are in a 2 meaures
+			if (currentBeatPosition == (beatsInAQuarterNote*8)+1){ // 8 is how many quarter notes are in a 2 meaures
 				currentBeatPosition = 1;
 			}
 			/* On a beat (Or 16th note assuming beatsInAQuarterNote == 4) */
-			//std::cout << "* ";
-			if((currentBeatPosition-1)%beatsInAQuarterNote == 0){
-				std::cout << "********** Quarter beat #" << totalBeatsProduced/beatsInAQuarterNote << " **********\n";
-			}else{
-				//std::cout << "\n";
+			if (DEBUG){
+				if ((currentBeatPosition-1)%beatsInAQuarterNote == 0){
+					std::cout << "********** Quarter beat #" << totalBeatsProduced/beatsInAQuarterNote << " **********\n";
+				} 
 			}
 			nextBeatTime = beatZeroTime + totalBeatsProduced * sampleLengthMicros;
 
 			/* Get all notes for the current beat */
 			std::vector<NoteTone> notesForBeat = tempo->getNoteTonesForBeatPosition(currentBeatPosition);
 			std::vector<PercussionTone> percussionsForBeat = tempo->getPercussionTonesForBeatPosition(currentBeatPosition);
-
 			for (int i = 0; i < notesForBeat.size(); i++){
 				NoteTone note = notesForBeat[i];
 				/* Send to STK! */
 				tk.playNoteTone(&note);
-				//std::cout << "\n" << note.getFrequency() << "\n\n";
 			}
 			/* Check main melody */
 			if (tempo->mainMelodyTrack.tones.count(currentBeatPosition) != 0){
@@ -142,13 +147,16 @@ void* Tempo::run(void*temp){
 			for (int i = 0; i < percussionsForBeat.size(); i++){
 				PercussionTone percussion = percussionsForBeat[i];
 				/* Send to STK! */
-				//std::cout << "\n" << percussion.getFileName() << "\n\n";
 			}
 			currentBeatPosition++;
 		}else{
 			std::this_thread::yield();
 			continue;
 		}
+	}
+	int tkResult = tk.stopStream();
+	if (DEBUG){
+		std::cout << "Toolkit stop result: " << tkResult;
 	}
 	return NULL;
 }
@@ -240,63 +248,3 @@ void Tempo::replaceMainMelody(NoteTrack newMelody){
 	}
 	mtx.unlock();
 }
-
-/*
-int main(){
-	std::mutex mutex;
-	Tempo t = Tempo(120, mutex);
-	// std::vector<NoteTone> nv;
-	// nv.push_back(NoteTone(1,2,kSine,10.0));
-	// nv.push_back(NoteTone(10,11,kSine,2.0));
-	// nv.push_back(NoteTone(15,16,kSine,3.0));
-	// nv.push_back(NoteTone(16,17,kSine,4.0));
-	// nv.push_back(NoteTone(18,19,kSine,5.0));
-	// nv.push_back(NoteTone(20,21,kSine,6.0));
-	// nv.push_back(NoteTone(21,22,kSine,7.0));
-	// nv.push_back(NoteTone(22,23,kSine,8.0));
-	// nv.push_back(NoteTone(27,28,kSine,8.0));
-	// nv.push_back(NoteTone(28,29,kSine,8.0));
-	// nv.push_back(NoteTone(32,33,kSine,8.0));
-
-	// t.addNoteTones(nv);
-
-	// std::vector<PercussionTone> pv;
-	// pv.push_back(PercussionTone(5,"hi.wav"));
-	// pv.push_back(PercussionTone(6,"hi.wav"));
-	// pv.push_back(PercussionTone(7,"hi.wav"));
-	// pv.push_back(PercussionTone(15,"hi.wav"));
-	// pv.push_back(PercussionTone(16,"hi.wav"));
-	// pv.push_back(PercussionTone(25,"hi.wav"));
-	// pv.push_back(PercussionTone(26,"hi.wav"));
-	// pv.push_back(PercussionTone(27,"hi.wav"));
-	// pv.push_back(PercussionTone(28,"hi.wav"));
-	// NoteTone tone = NoteTone(5,6,kSine, 100.0f);
-	// t.start();
-
-
-	return 0;
-}
-
-
-void* Tempo::testStuff(void*temp){
-	Tempo *tempo = (Tempo*)temp;
-	std::this_thread::sleep_for(std::chrono::seconds(8));
-	std::vector<NoteTone> nv;
-	nv.push_back(NoteTone(1,2,kSine,10.0));
-	nv.push_back(NoteTone(10,11,kSine,2.0));
-	nv.push_back(NoteTone(15,16,kSine,3.0));
-	nv.push_back(NoteTone(16,17,kSine,4.0));
-	nv.push_back(NoteTone(18,19,kSine,5.0));
-	nv.push_back(NoteTone(20,21,kSine,6.0));
-	nv.push_back(NoteTone(21,22,kSine,7.0));
-	nv.push_back(NoteTone(22,23,kSine,8.0));
-	nv.push_back(NoteTone(27,28,kSine,8.0));
-	nv.push_back(NoteTone(28,29,kSine,8.0));
-	nv.push_back(NoteTone(32,33,kSine,8.0));
-
-	tempo->addNoteTones(nv);
-
-	return NULL;
-}
-
-*/

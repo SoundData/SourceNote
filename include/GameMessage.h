@@ -19,8 +19,9 @@ class GameMessage {
 		std::string eventType;
 		std::map<std::string, std::string> *info;
 		GameMessage(const char *buf, size_t len);
+		GameMessage(){};
 		~GameMessage();
-		
+
 	private:
 		void PopulateFields(std::string);
 		static const char *DELIM;

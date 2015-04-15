@@ -46,6 +46,7 @@ class ToneCreator{
 		std::unordered_map< std::string, std::vector <std::string> > majorKeyNotes;
 		std::unordered_map< std::string, std::vector <std::string> > minorKeyNotes;
 		std::string currentKey;
+		ScaleType currentScale;
 		std::vector <std::string> allKeys;
 		NoteTrack mainMelody;
 		void initializeNoteData();

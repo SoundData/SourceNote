@@ -6,6 +6,7 @@
 #include <time.h>
 #include <string>
 
+#define DEBUG 0
 
 std::string fileNames[] = {"clap.wav", "snare.wav", "kick.wav", "chat.wav", "cowbell.wav", "cymbal.wav", "hconga.wav", "htom.wav", 
 "lconga.wav", "ltom.wav", "mconga.wav", "ohat.wav"};
@@ -172,6 +173,8 @@ void ToneCreator::initializeNoteData(){
 	fileNames[kKick] = "kick.wav";
 	fileNames[kClap] = "clap.wav";
 
+	currentScale = kMajor;
+
 }
 
 NoteTone ToneCreator::makeToneWithNote(std::string note){
@@ -183,7 +186,9 @@ NoteTone ToneCreator::makeRandomNoteInScaleAndKeyAndOctave(ScaleType scale, std:
 	currentKey = key;
 	std::vector<std::string> notesInKey = (scale == kMajor) ? majorKeyNotes[key] : minorKeyNotes[key];
 	int randomNoteInKeyIndex = rand() % notesInKey.size();
-	std::cout << notesInKey.size() << " random: " << randomNoteInKeyIndex << "\n";
+	if (DEBUG){
+		std::cout << notesInKey.size() << " random: " << randomNoteInKeyIndex << "\n";
+	}
 	std::string randomNote = notesInKey[randomNoteInKeyIndex];
 	randomNote += ('0' + octave);
 	return NoteTone(1,2,kSine,noteFrequencies[randomNote], randomNote);
@@ -197,7 +202,9 @@ NoteTone ToneCreator::makeRandomNoteInTimeFrameAndScaleAndKeyAndOctave(unsigned 
 	randomNote += ('0' + octave);
 	int startBeat = rand() % endTime + 1;
 	//For now, every note will be a 16th note long. So the endBeat will be startBeat+1
-	std::cout << "Random melody note: " << randomNote << " on beat:" << startBeat << "\n";
+	if (DEBUG){
+		std::cout << "Random melody note: " << randomNote << " on beat:" << startBeat << "\n";
+	}
 	return NoteTone(startBeat,startBeat+1,kSine,noteFrequencies[randomNote], randomNote);
 }
 
@@ -220,7 +227,9 @@ NoteTrack ToneCreator::makeRandomMelodyNotesInRandomKeyWithOctave(int octave, bo
 	std::vector<NoteTone> notes;
 	std::string randomKey = allKeys[rand() % allKeys.size()];
 	currentKey = randomKey;
-	std::cout << "Random melody in key:" << randomKey << " and octave:" << octave << "\n";
+	if (DEBUG){
+		std::cout << "Random melody in key:" << randomKey << " and octave:" << octave << "\n";
+	}
 	for (int i = 0; i < randomNumberOfNotes; i++){
 		NoteTone newNote = makeRandomNoteInTimeFrameAndScaleAndKeyAndOctave(1,32, kMajor, randomKey, octave);
 		notes.push_back(newNote);
@@ -240,7 +249,9 @@ NoteTrack ToneCreator::makeRandomMelodyNotesInRandomKeyAndRandomOctave(bool isMa
 	std::string randomKey = allKeys[rand() % allKeys.size()];
 	currentKey = randomKey;
 	int randomOctave = rand() % 2 + 1;
-	std::cout << "Random melody in key:" << randomKey << " and octave:" << randomOctave << "\n";
+	if (DEBUG){
+		std::cout << "Random melody in key:" << randomKey << " and octave:" << randomOctave << "\n";
+	}
 	for (int i = 0; i < randomNumberOfNotes; i++){
 		NoteTone newNote = makeRandomNoteInTimeFrameAndScaleAndKeyAndOctave(1,32, kMajor, randomKey, randomOctave);
 		notes.push_back(newNote);
@@ -254,8 +265,7 @@ NoteTrack ToneCreator::makeRandomMelodyNotesInRandomKeyAndRandomOctave(bool isMa
 }
 
 NoteTrack ToneCreator::makeMainMelodyScaleInNewScale(ScaleType newScale, ScaleType oldScale){
-	std::cout << currentKey << "\n";
-	if(newScale == oldScale){
+	if(newScale == oldScale || newScale == oldScale){
 		return mainMelody;
 	}
 	std::vector<NoteTone> oldNotes;
@@ -271,9 +281,11 @@ NoteTrack ToneCreator::makeMainMelodyScaleInNewScale(ScaleType newScale, ScaleTy
 	std::vector<std::string> newKeyNotes;
 
 	if(newScale == kMajor){
+		currentScale = kMajor;
 		newKeyNotes = majorKeyNotes[currentKey];
 		oldKeyNotes = minorKeyNotes[currentKey];
 	}else{
+		currentScale = kMinor;
 		oldKeyNotes = majorKeyNotes[currentKey];
 		newKeyNotes = minorKeyNotes[currentKey];
 	}
@@ -304,14 +316,17 @@ int findIndexOfNoteInKey(NoteTone note, std::vector<std::string> keyNotes){
 }
 
 PercussionTrack ToneCreator::makePercussionTrackWithTypeAndBeats(PercussionToneType type, std::vector<unsigned short int> beats){
-	std::cout << "Generating " << beats.size() << " beats\n";
+	if (DEBUG){
+		std::cout << "Generating " << beats.size() << " beats\n";
+	}
 	std::vector<PercussionTone> percussions;
 	for(int i = 0; i < beats.size(); i++){
 		percussions.push_back(PercussionTone(beats[i], fileNames[type]));
 		PercussionTone tone = percussions[i];
-		std::cout << "PercussionTone: " << tone.getStartBeatPosition() << " " << tone.getFileName() << "\n";
+		if (DEBUG){
+			std::cout << "PercussionTone: " << tone.getStartBeatPosition() << " " << tone.getFileName() << "\n";
+		}
 	}
-	std::cout << "\n";
 	return PercussionTrack(percussions);
 }
 
@@ -324,12 +339,14 @@ PercussionTrack ToneCreator::makeRandomBeatWithPercussionType(PercussionToneType
 		case 0:{
 			/* half notes, aka every other quarter note */
 			/* choose randomly between starting on beat 1 or 2 */
-			std::cout << "Generating half notes, ";
 			int randomStartBeat = rand() % 2;
-			if(randomStartBeat == 1){
-				std::cout << "starting on beat 1\n";
-			}else{
-				std::cout << "starting on beat 2\n";
+			if (DEBUG){
+				std::cout << "Generating half notes, ";
+				if(randomStartBeat == 1){
+					std::cout << "starting on beat 1\n";
+				}else{
+					std::cout << "starting on beat 2\n";
+				}
 			}
 			for (int i = 1; i <= 32; i++){
 				if(randomStartBeat == 1){
@@ -351,7 +368,7 @@ PercussionTrack ToneCreator::makeRandomBeatWithPercussionType(PercussionToneType
 
 		case 1:{
 			/* quarter notes */
-			std::cout << "Generating quarter notes\n";
+			if (DEBUG) std::cout << "Generating quarter notes\n";
 			for (int i = 1; i <= 32; i++){
 				if(((i - 1) % 4) == 0){
 					PercussionTone tone = PercussionTone(i, fileName);
@@ -363,7 +380,7 @@ PercussionTrack ToneCreator::makeRandomBeatWithPercussionType(PercussionToneType
 
 		case 2:{
 			/* 8th notes, aka every half quarter note */
-			std::cout << "Generating 8th notes\n";
+			if (DEBUG) std::cout << "Generating 8th notes\n";
 			for (int i = 1; i <= 32; i++){
 				if(((i - 1) % 2) == 0){
 					PercussionTone tone = PercussionTone(i, fileName);
@@ -373,7 +390,7 @@ PercussionTrack ToneCreator::makeRandomBeatWithPercussionType(PercussionToneType
 			break;
 		}
 	}
-	std::cout << "\n";
+	if (DEBUG) std::cout << "\n";
 	return PercussionTrack(percussions);
 
 }

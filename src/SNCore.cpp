@@ -1,68 +1,99 @@
 #include "SNCore.h"
 
-void SNCore::start(GameMessage *classMessage){
-	Tempo temp = Tempo(getBPMForClass(classMessage),mutex);
-	/* Why can't I just make the object pointer in one line?! */
-	tempo = &temp;
-	decodeMessage(classMessage);
+SNCore::SNCore(std::mutex &mtx) : mutex(mtx), tempo(Tempo(120, mtx)) {};
+
+void SNCore::start(const GameMessage *classMessage){
+	setInitialMusicForClass(classMessage);
+	tempo.start();
 }
 
-void SNCore::decodeMessage(GameMessage* message){
-	if (message->eventType == "player_death"){
-		NoteTrack minorMainMelody = toneCreator.makeMainMelodyScaleInNewScale(kMajor, kMinor);
+void SNCore::decodeMessage(const GameMessage* message){
+	if (message->eventType == "PLAYER_DEATH"){
+		NoteTrack minorMainMelody = toneCreator.makeMainMelodyScaleInNewScale(kMinor, kMajor);
 		minorMainMelody.continous = false;
-		minorMainMelody.repeatCount = 4;
-		tempo->addMainMelodyTrack(minorMainMelody);
+		minorMainMelody.repeatCount = 3;
+		tempo.addMainMelodyTrack(minorMainMelody);
 
-		NoteTrack lowOctaveTrack = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(false, 1);
+		NoteTrack lowOctaveTrack = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, false);
 		lowOctaveTrack.continous = false;
-		lowOctaveTrack.repeatCount = 6;
-		tempo->addNoteTrack(lowOctaveTrack);
+		lowOctaveTrack.repeatCount = 3;
+		tempo.addNoteTrack(lowOctaveTrack);
 
 		PercussionTrack randomPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kLtom);
 		randomPercussionTrack.continous = false;
 		randomPercussionTrack.repeatCount = 3;
-		tempo->addPercussionTrack(randomPercussionTrack, false);
+		//tempo.addPercussionTrack(randomPercussionTrack, false);
 
-	}else if(message->eventType == "player_changeclass"){
+	}else if(message->eventType == "PLAYER_CHANGECLASS"){
 		/* stop Tempo to change the BPM */
-		tempo->stop();
-		if(message->info->at("class") == "TFClass_Scout"){
-			NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(true, 2);
+		tempo.stop();
+		if(message->info->at("PlayerClass") == "Scout"){
+			NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(2, true);
 			newMainMelody.continous = true;
-			tempo->addMainMelodyTrack(newMainMelody);
+			tempo.replaceMainMelody(newMainMelody);
 
 			PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kSnare);
-			tempo->addPercussionTrack(newPercussionTrack, true);
+			//temp.addPercussionTrack(newPercussionTrack, true);
 
-		}else if(message->info->at("class") == "TFClass_Heavy"){
-			NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(true, 1);
+		}else if(message->info->at("PlayerClass") == "Heavy"){
+			NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, true);
 			newMainMelody.continous = true;
-			tempo->addMainMelodyTrack(newMainMelody);
+			tempo.replaceMainMelody(newMainMelody);
 
 			PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kKick);
-			tempo->addPercussionTrack(newPercussionTrack, true);
+			//temp.addPercussionTrack(newPercussionTrack, true);
 
 		}else{
-			NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(true, 1);
+			NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, true);
 			newMainMelody.continous = true;
-			tempo->addMainMelodyTrack(newMainMelody);
+			tempo.replaceMainMelody(newMainMelody);
 
 			PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kKick);
-			tempo->addPercussionTrack(newPercussionTrack, true);
+			//temp.addPercussionTrack(newPercussionTrack, true);
 		}
-		tempo->setNewBPM(getBPMForClass(message));
-		tempo->start();
+		tempo.setNewBPM(getBPMForClass(message));
+		sleep(1);
+		tempo.start();
+	}else if(message->eventType == "PLAYER_HURT"){
+
 	}
 }
 
-int SNCore::getBPMForClass(GameMessage *classMessage){
-	if(classMessage->eventType != "player_changeclass"){
+void SNCore::setInitialMusicForClass(const GameMessage *classMessage){
+	tempo.setNewBPM(getBPMForClass(classMessage));
+	if(classMessage->info->at("PlayerClass") == "Scout"){
+			NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(2, true);
+			newMainMelody.continous = true;
+			tempo.addMainMelodyTrack(newMainMelody);
+
+			// PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kSnare);
+			// temp.addPercussionTrack(newPercussionTrack, true);
+
+		}else if(classMessage->info->at("PlayerClass") == "Heavy"){
+			NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, true);
+			newMainMelody.continous = true;
+			tempo.addMainMelodyTrack(newMainMelody);
+
+			// PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kKick);
+			// temp.addPercussionTrack(newPercussionTrack, true);
+
+		}else{
+			NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, true);
+			newMainMelody.continous = true;
+			tempo.addMainMelodyTrack(newMainMelody);
+
+			// PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kKick);
+			// temp.addPercussionTrack(newPercussionTrack, true);
+		}
+}
+
+int SNCore::getBPMForClass(const GameMessage *classMessage){
+	if(classMessage->eventType != "PLAYER_CHANGECLASS"){
 		return -1;
 	}
-	if(classMessage->info->at("class") == "TFClass_Scout"){
+	if(classMessage->info->at("PlayerClass") == "Scout"){
 		return 160;
-	}else if(classMessage->info->at("class") == "TFClass_Heavy"){
+	}else if(classMessage->info->at("PlayerClass") == "Heavy"){
 		return 100;
 	}else
 		return 120;

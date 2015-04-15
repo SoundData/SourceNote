@@ -4,6 +4,7 @@
 #include "NoteTone.h"
 #include "ToneCreator.h"
 #include "NoteTrack.h"
+#include "SNCore.h"
 
 // STK
 #include "Instrmnt.h"
@@ -22,17 +23,45 @@
 #include <vector>
 #include <mutex>
 
-#define S_RATE 44100
-
-using std::min;
-using namespace stk;
 
 // This is a main file for the algorithm team's tests.
 // It should not be implemented in the final release.
 int main(void) {
-	
-	Stk::setSampleRate( (float) S_RATE );
-	Stk::setRawwavePath( "samples/rawwaves/" );
+
+	/*** GameMessage testing ***/
+	/*
+	std::mutex mutex;
+	SNCore core = SNCore(mutex);
+
+	GameMessage *gm = new GameMessage();
+	gm->eventType = std::string("PLAYER_CHANGECLASS");
+	gm->info = new std::map<std::string, std::string>();
+	gm->info->insert( std::pair<std::string, std::string>("PlayerName", "JoeMaag"));
+	gm->info->insert( std::pair<std::string, std::string>("PlayerClass", "Scout"));
+
+	core.start(gm);
+	sleep(6);
+
+	GameMessage *gm2 = new GameMessage();
+	gm2->eventType = std::string("PLAYER_DEATH");
+	gm2->info = new std::map<std::string, std::string>();
+	core.decodeMessage(gm2);
+	sleep(15);
+
+	GameMessage *gm3 = new GameMessage();
+	gm3->eventType = std::string("PLAYER_CHANGECLASS");
+	gm3->info = new std::map<std::string, std::string>();
+	gm3->info->insert( std::pair<std::string, std::string>("PlayerName", "JoeMaag"));
+	gm3->info->insert( std::pair<std::string, std::string>("PlayerClass", "Heavy"));
+	core.decodeMessage(gm3);
+	sleep(6);
+
+	GameMessage *gm4 = new GameMessage();
+	gm4->eventType = std::string("PLAYER_DEATH");
+	gm4->info = new std::map<std::string, std::string>();
+	core.decodeMessage(gm4);
+	*/
+
 	
 	std::mutex mutex;
 	Tempo t = Tempo(120, mutex);
@@ -41,6 +70,11 @@ int main(void) {
 	nt.continous = false;
 	nt.repeatCount = 1;
 
+	/* Uncomment for percussion testing 
+	PercussionTrack pt = tc.makeRandomBeatWithPercussionType(kSnare);
+	pt.addPercussionTrack(pt, false); 
+	*/
+	
 	t.addNoteTrack(nt);
 	t.start();
 	sleep(5);
@@ -57,9 +91,6 @@ int main(void) {
 
 	t.addNoteTrack(nt3);
 	sleep(20);
-	//PercussionTone *b = new PercussionTone(1, "kick.wav");
-	
-		
 	
 	
 	// tk.playTone(0, 2, "sine", 440.0);
