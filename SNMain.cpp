@@ -14,7 +14,7 @@
 using namespace stk;
 
 void ProcessItem(const GameMessage*);
-bool DropIrrelevantMessage(const GameMessage*, const std::string&);
+bool DropIrrelavantMessage(const GameMessage*, const std::string&);
 
 int main(int argc, char *argv[])
 {
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 		while (!q.empty())
 		{
 			GameMessage *gm = q.front();
-			if (DropIrrelevantMessage(gm, username))
+			if (DropIrrelavantMessage(gm, username))
 			{
 				delete gm;
 				q.pop();

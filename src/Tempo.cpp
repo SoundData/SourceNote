@@ -79,11 +79,25 @@ void Tempo::addPercussionTrack(PercussionTrack track, bool removeAllExistingPerc
 }
 
 void Tempo::addMainMelodyTrack(NoteTrack track){
+	/* This assumes that the track is continous. Should only be used once when setting the first intial melody */
 	while(!mtx.try_lock()){
 		continue;
 	}
 	mainMelodyTrack = track;
 	permanentMainMelodyTrack = track;
+	mtx.unlock();
+}
+
+void Tempo::replaceMainMelodyTrack(NoteTrack newMelody){
+	/* Use this once you've set an intial melody already. This makes sure that if the newMelody is not continous,
+	 * the initial continous melody will be backed up to replace the new one when no more repitiions are left */
+	while(!mtx.try_lock()){
+		continue;
+	}
+	mainMelodyTrack = newMelody;
+	if(newMelody.continous){
+		permanentMainMelodyTrack = newMelody;
+	}
 	mtx.unlock();
 }
 
@@ -236,15 +250,4 @@ void Tempo::checkMainMelodyRepition(unsigned short int beatPosition){
 	}
 	mtx.unlock();
 	return;
-}
-
-void Tempo::replaceMainMelody(NoteTrack newMelody){
-	while(!mtx.try_lock()){
-		continue;
-	}
-	mainMelodyTrack = newMelody;
-	if(newMelody.continous){
-		permanentMainMelodyTrack = newMelody;
-	}
-	mtx.unlock();
 }

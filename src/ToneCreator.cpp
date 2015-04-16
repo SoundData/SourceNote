@@ -289,6 +289,7 @@ NoteTrack ToneCreator::makeMainMelodyScaleInNewScale(ScaleType newScale, ScaleTy
 		oldKeyNotes = majorKeyNotes[currentKey];
 		newKeyNotes = minorKeyNotes[currentKey];
 	}
+	if (DEBUG) std::cout << "Current key " << currentKey << "\n";
 
 	for(int i = 0; i < oldNotes.size(); i++){
 		NoteTone note = oldNotes[i];
@@ -305,9 +306,15 @@ NoteTrack ToneCreator::makeMainMelodyScaleInNewScale(ScaleType newScale, ScaleTy
 
 int findIndexOfNoteInKey(NoteTone note, std::vector<std::string> keyNotes){
 	std::string noteNameWithoutOctave = note.getNoteName().substr(0,note.getNoteName().size()-1);
-	//std::cout << "Searching for " << noteNameWithoutOctave << "\n";
+	std::string noteWithOnlyLetter = (noteNameWithoutOctave.size() > 1) ? noteNameWithoutOctave.substr(0,1) : noteNameWithoutOctave;
+	if (DEBUG) std::cout << "Searching for " << noteWithOnlyLetter << "\n";
 	for (int i = 0 ; i < keyNotes.size(); i++){
-		if(noteNameWithoutOctave == keyNotes[i]){
+		if (DEBUG) std::cout << noteWithOnlyLetter << " == " << keyNotes[i] << " ?\n";
+		std::string currentPossibleNoteMatch = keyNotes[i];
+		if (currentPossibleNoteMatch.size() > 1){
+			currentPossibleNoteMatch = currentPossibleNoteMatch.substr(0,1);
+		}
+		if(noteWithOnlyLetter == currentPossibleNoteMatch){
 			return i;
 		}
 	}

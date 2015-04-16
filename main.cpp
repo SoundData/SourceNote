@@ -42,11 +42,24 @@ int main(void) {
 	core.start(gm);
 	sleep(6);
 
-	GameMessage *gm2 = new GameMessage();
-	gm2->eventType = std::string("PLAYER_DEATH");
-	gm2->info = new std::map<std::string, std::string>();
-	core.decodeMessage(gm2);
-	sleep(15);
+	// GameMessage *gm2 = new GameMessage();
+	// gm2->eventType = std::string("PLAYER_DEATH");
+	// gm2->info = new std::map<std::string, std::string>();
+	// std::cout << "death\n";
+	// core.decodeMessage(gm2);
+	// sleep(20);
+
+	// std::cout << "death\n";
+	// core.decodeMessage(gm2);
+	// sleep(15);
+
+	// 	GameMessage *gm5 = new GameMessage();
+	// gm5->eventType = std::string("PLAYER_SPAWN");
+	// gm5->info = new std::map<std::string, std::string>();
+	// gm5->info->insert( std::pair<std::string, std::string>("PlayerClass", "Scout"));
+	// std::cout << "spawn\n";
+	// core.decodeMessage(gm5);
+	// sleep(20);
 
 	GameMessage *gm3 = new GameMessage();
 	gm3->eventType = std::string("PLAYER_CHANGECLASS");
@@ -55,12 +68,8 @@ int main(void) {
 	gm3->info->insert( std::pair<std::string, std::string>("PlayerClass", "Heavy"));
 	core.decodeMessage(gm3);
 	sleep(6);
-
-	GameMessage *gm4 = new GameMessage();
-	gm4->eventType = std::string("PLAYER_DEATH");
-	gm4->info = new std::map<std::string, std::string>();
-	core.decodeMessage(gm4);
-	*/
+*/
+	
 
 	
 	std::mutex mutex;
@@ -70,10 +79,10 @@ int main(void) {
 	nt.continous = false;
 	nt.repeatCount = 1;
 
-	/* Uncomment for percussion testing 
-	PercussionTrack pt = tc.makeRandomBeatWithPercussionType(kSnare);
-	pt.addPercussionTrack(pt, false); 
-	*/
+	//  Uncomment for percussion testing 
+	// PercussionTrack pt = tc.makeRandomBeatWithPercussionType(kSnare);
+	// pt.addPercussionTrack(pt, false); 
+	
 	
 	t.addNoteTrack(nt);
 	t.start();
@@ -94,8 +103,8 @@ int main(void) {
 	
 	
 	// tk.playTone(0, 2, "sine", 440.0);
-	//tk.playNoteTone(a);
-	//tk.playPercussionTone(b);
+	// tk.playNoteTone(a);
+	// tk.playPercussionTone(b);
 	
 	return 0;
 }

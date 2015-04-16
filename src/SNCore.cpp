@@ -1,6 +1,7 @@
 #include "SNCore.h"
 
 bool healthIsLow;
+bool allowRespawnEvent;
 
 SNCore::SNCore(std::mutex &mtx) : mutex(mtx), tempo(Tempo(120, mtx)) {};
 
@@ -11,11 +12,12 @@ void SNCore::start(const GameMessage *classMessage){
 
 void SNCore::decodeMessage(const GameMessage* message){
 	if (message->eventType == "PLAYER_DEATH"){
+		allowRespawnEvent = true;
 		healthIsLow = false;
 		NoteTrack minorMainMelody = toneCreator.makeMainMelodyScaleInNewScale(kMinor, kMajor);
 		minorMainMelody.continous = false;
 		minorMainMelody.repeatCount = 3;
-		tempo.addMainMelodyTrack(minorMainMelody);
+		tempo.replaceMainMelodyTrack(minorMainMelody);
 
 		NoteTrack lowOctaveTrack = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, false);
 		lowOctaveTrack.continous = false;
@@ -25,7 +27,7 @@ void SNCore::decodeMessage(const GameMessage* message){
 		PercussionTrack randomPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kLtom);
 		randomPercussionTrack.continous = false;
 		randomPercussionTrack.repeatCount = 3;
-		//tempo.addPercussionTrack(randomPercussionTrack, false);
+		tempo.addPercussionTrack(randomPercussionTrack, false);
 
 	}else if(message->eventType == "PLAYER_CHANGECLASS"){
 		/* stop Tempo to change the BPM */
@@ -34,7 +36,7 @@ void SNCore::decodeMessage(const GameMessage* message){
 		if(message->info->at("PlayerClass") == "Scout"){
 			NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(2, true);
 			newMainMelody.continous = true;
-			tempo.replaceMainMelody(newMainMelody);
+			tempo.replaceMainMelodyTrack(newMainMelody);
 
 			PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kSnare);
 			//temp.addPercussionTrack(newPercussionTrack, true);
@@ -42,7 +44,7 @@ void SNCore::decodeMessage(const GameMessage* message){
 		}else if(message->info->at("PlayerClass") == "Heavy"){
 			NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, true);
 			newMainMelody.continous = true;
-			tempo.replaceMainMelody(newMainMelody);
+			tempo.replaceMainMelodyTrack(newMainMelody);
 
 			PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kKick);
 			//temp.addPercussionTrack(newPercussionTrack, true);
@@ -50,13 +52,13 @@ void SNCore::decodeMessage(const GameMessage* message){
 		}else{
 			NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, true);
 			newMainMelody.continous = true;
-			tempo.replaceMainMelody(newMainMelody);
+			tempo.replaceMainMelodyTrack(newMainMelody);
 
 			PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kKick);
 			//temp.addPercussionTrack(newPercussionTrack, true);
 		}
 		tempo.setNewBPM(getBPMForClass(message));
-		sleep(1);
+		sleep(1); //why does this make it work??
 		tempo.start();
 
 	}else if(message->eventType == "PLAYER_HURT"){
@@ -74,30 +76,33 @@ void SNCore::decodeMessage(const GameMessage* message){
 			healthIsLow = false;
 		}
 	}else if(message->eventType == "PLAYER_SPAWN"){
-		// if(message->info->at("PlayerClass") == "Scout"){
-		// 	NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(2, true);
-		// 	newMainMelody.continous = true;
-		// 	tempo.replaceMainMelody(newMainMelody);
+		if (allowRespawnEvent){
+			allowRespawnEvent = false;
+			if(message->info->at("PlayerClass") == "Scout"){
+				NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(2, true);
+				newMainMelody.continous = true;
+				tempo.replaceMainMelodyTrack(newMainMelody);
 
-		// 	PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kSnare);
-		// 	//temp.addPercussionTrack(newPercussionTrack, true);
+				PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kSnare);
+				//temp.addPercussionTrack(newPercussionTrack, true);
 
-		// }else if(message->info->at("PlayerClass") == "Heavy"){
-		// 	NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, true);
-		// 	newMainMelody.continous = true;
-		// 	tempo.replaceMainMelody(newMainMelody);
+			}else if(message->info->at("PlayerClass") == "Heavy"){
+				NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, true);
+				newMainMelody.continous = true;
+				tempo.replaceMainMelodyTrack(newMainMelody);
 
-		// 	PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kKick);
-		// 	//temp.addPercussionTrack(newPercussionTrack, true);
+				PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kKick);
+				//temp.addPercussionTrack(newPercussionTrack, true);
 
-		// }else{
-		// 	NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, true);
-		// 	newMainMelody.continous = true;
-		// 	tempo.replaceMainMelody(newMainMelody);
+			}else{
+				NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, true);
+				newMainMelody.continous = true;
+				tempo.replaceMainMelodyTrack(newMainMelody);
 
-		// 	PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kKick);
-		// 	//temp.addPercussionTrack(newPercussionTrack, true);
-		// }
+				PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kKick);
+				//temp.addPercussionTrack(newPercussionTrack, true);
+			}
+		}
 	}
 }
 

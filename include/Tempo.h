@@ -31,7 +31,7 @@ class Tempo{
 		void addNoteTrack(NoteTrack track);
 		void addPercussionTrack(PercussionTrack track, bool removeAllExistingPercussionTracks);
 		void addMainMelodyTrack(NoteTrack track);
-		void replaceMainMelody(NoteTrack newMelody);
+		void replaceMainMelodyTrack(NoteTrack newMelody);
 		//static void* testStuff(void*temp);  For testing
 };
 
