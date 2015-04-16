@@ -1,5 +1,7 @@
 #include "SNCore.h"
 
+bool healthIsLow;
+
 SNCore::SNCore(std::mutex &mtx) : mutex(mtx), tempo(Tempo(120, mtx)) {};
 
 void SNCore::start(const GameMessage *classMessage){
@@ -9,6 +11,7 @@ void SNCore::start(const GameMessage *classMessage){
 
 void SNCore::decodeMessage(const GameMessage* message){
 	if (message->eventType == "PLAYER_DEATH"){
+		healthIsLow = false;
 		NoteTrack minorMainMelody = toneCreator.makeMainMelodyScaleInNewScale(kMinor, kMajor);
 		minorMainMelody.continous = false;
 		minorMainMelody.repeatCount = 3;
@@ -26,6 +29,7 @@ void SNCore::decodeMessage(const GameMessage* message){
 
 	}else if(message->eventType == "PLAYER_CHANGECLASS"){
 		/* stop Tempo to change the BPM */
+		healthIsLow = false;
 		tempo.stop();
 		if(message->info->at("PlayerClass") == "Scout"){
 			NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(2, true);
@@ -54,8 +58,46 @@ void SNCore::decodeMessage(const GameMessage* message){
 		tempo.setNewBPM(getBPMForClass(message));
 		sleep(1);
 		tempo.start();
-	}else if(message->eventType == "PLAYER_HURT"){
 
+	}else if(message->eventType == "PLAYER_HURT"){
+		 std::string damage = message->info->at("VictimHealth");
+		 std::string::size_type sz;
+		 short int damageValue = std::stoi(damage, &sz);
+		 std::cout << "Damage " << damageValue << "\n";
+		if(damageValue < 50 && !healthIsLow){
+			healthIsLow = true;
+			NoteTrack newTrack = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(2, false);
+			newTrack.continous = false;
+			newTrack.repeatCount = 1;
+			tempo.addNoteTrack(newTrack);
+		}else{
+			healthIsLow = false;
+		}
+	}else if(message->eventType == "PLAYER_SPAWN"){
+		// if(message->info->at("PlayerClass") == "Scout"){
+		// 	NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(2, true);
+		// 	newMainMelody.continous = true;
+		// 	tempo.replaceMainMelody(newMainMelody);
+
+		// 	PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kSnare);
+		// 	//temp.addPercussionTrack(newPercussionTrack, true);
+
+		// }else if(message->info->at("PlayerClass") == "Heavy"){
+		// 	NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, true);
+		// 	newMainMelody.continous = true;
+		// 	tempo.replaceMainMelody(newMainMelody);
+
+		// 	PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kKick);
+		// 	//temp.addPercussionTrack(newPercussionTrack, true);
+
+		// }else{
+		// 	NoteTrack newMainMelody = toneCreator.makeRandomMelodyNotesInRandomKeyWithOctave(1, true);
+		// 	newMainMelody.continous = true;
+		// 	tempo.replaceMainMelody(newMainMelody);
+
+		// 	PercussionTrack newPercussionTrack = toneCreator.makeRandomBeatWithPercussionType(kKick);
+		// 	//temp.addPercussionTrack(newPercussionTrack, true);
+		// }
 	}
 }
 
