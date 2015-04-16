@@ -14,18 +14,26 @@
 using namespace stk;
 
 void ProcessItem(const GameMessage*);
+bool DropIrrelevantMessage(const GameMessage*, const std::string&);
 
 int main(int argc, char *argv[])
 {
-	if (argc < 2)
+	if (argc < 3)
 	{
-		std::cout << "No server address specified - using default (localhost:7633)" << std::endl;
+		std::cout << "No server address specified - try using tcp://104.236.52.206:7633" << std::endl;
+		std::cout << "You also need to specify a username" << std::endl;
+		std::cout << "Exiting" << std::endl;
+		return 0;
 	}
+	
 	Stk::setSampleRate( (float) S_RATE );
 	Stk::setRawwavePath( "samples/rawwaves/" );
 
 	std::mutex mutex;
 	SNCore sncore = SNCore(mutex);
+	
+	std::string username(argv[2]);
+	std::cout << "Hello, " << username << "!" << std::endl;
 
 	// Protects access to the GameMessage queue that will be added to asynchronously
 	std::mutex mtx;
@@ -45,14 +53,51 @@ int main(int argc, char *argv[])
 		//std::cout << "Main thread got lock, processing all available items" << std::endl;
 		while (!q.empty())
 		{
+			GameMessage *gm = q.front();
+			if (DropIrrelevantMessage(gm, username))
+			{
+				delete gm;
+				q.pop();
+				continue;
+			}
 			// Process this item 
-			ProcessItem(q.front());
-			sncore.decodeMessage(q.front());
-			delete q.front();
+			ProcessItem(gm);
+			sncore.decodeMessage(gm);
+			delete gm;
 			q.pop();
 		}
 		mtx.unlock();
 	}
+}
+
+bool DropIrrelavantMessage(const GameMessage* gm, const std::string& username)
+{
+	// evaluate cases for which we may need to drop this message
+	
+	if (gm->eventType.compare("PLAYER_DEATH") == 0)
+		return !(gm->info->at("Attacker").compare(username) == 0 ||
+				 gm->info->at("Victim").compare(username) == 0 ||
+				 gm->info->at("Assister").compare(username) == 0);
+	
+	if (gm->eventType.compare("PLAYER_SPAWN") == 0)
+		return !(gm->info->at("PlayerName").compare(username) == 0);
+		
+	if (gm->eventType.compare("PLAYER_CHANGECLASS") == 0)
+		return !(gm->info->at("PlayerName").compare(username) == 0);
+		
+	if (gm->eventType.compare("PLAYER_CHANGE_TEAM") == 0)
+		return !(gm->info->at("PlayerName").compare(username) == 0);
+		
+	if (gm->eventType.compare("PLAYER_HURT") == 0)
+		return !(gm->info->at("VictimName").compare(username) == 0 ||
+				 gm->info->at("AttackerName").compare(username) == 0);
+				 
+	if (gm->eventType.compare("DEMOMAN_STICKY_JUMP") == 0)
+		return !(gm->info->at("PlayerName").compare(username) == 0);
+		
+	if (gm->eventType.compare("SOLDIER_ROCKET_JUMP") == 0)
+		return !(gm->info->at("PlayerName").compare(username) == 0);
+		
 }
 
 void ProcessItem(const GameMessage* gm)
