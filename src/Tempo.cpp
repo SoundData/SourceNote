@@ -1,10 +1,12 @@
 #include "Tempo.h"
+
 #include <pthread.h>
 #include <unistd.h>
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include <cmath>	
+#include <cmath>
+
 #include "Toolkit.h"
 
 #define S_RATE 44100
@@ -12,6 +14,7 @@
 
 using std::min;
 using namespace stk;
+
 
 Tempo::Tempo(int beatsPerMinute, std::mutex& mutex) : bpm(beatsPerMinute), mtx(mutex) {};
 
@@ -23,9 +26,6 @@ void Tempo::start(){
 		std::cout << "Error: Cannot create thread" << threadResult;
 		exit(-1);
 	}
-	//pthread_t thread1;
-	//threadResult = pthread_create(&thread1, NULL, &Tempo::testStuff, this);
-	//sleep(30);
 }
 
 void Tempo::stop(){
@@ -78,19 +78,7 @@ void Tempo::addPercussionTrack(PercussionTrack track, bool removeAllExistingPerc
 	mtx.unlock();
 }
 
-void Tempo::addMainMelodyTrack(NoteTrack track){
-	/* This assumes that the track is continous. Should only be used once when setting the first intial melody */
-	while(!mtx.try_lock()){
-		continue;
-	}
-	mainMelodyTrack = track;
-	permanentMainMelodyTrack = track;
-	mtx.unlock();
-}
-
-void Tempo::replaceMainMelodyTrack(NoteTrack newMelody){
-	/* Use this once you've set an intial melody already. This makes sure that if the newMelody is not continous,
-	 * the initial continous melody will be backed up to replace the new one when no more repitiions are left */
+void Tempo::setMainMelodyTrack(NoteTrack newMelody){
 	while(!mtx.try_lock()){
 		continue;
 	}
@@ -101,68 +89,78 @@ void Tempo::replaceMainMelodyTrack(NoteTrack newMelody){
 	mtx.unlock();
 }
 
-void* Tempo::run(void*temp){
+void* Tempo::run(void* temp){
+	/* Toolkit setup */
 	Stk::setSampleRate((float) S_RATE);
 	Stk::setRawwavePath("samples/rawwaves/");
 
-	unsigned short int beatsInAQuarterNote = 4;
-	/* 'beatsInAQuarterNote' defines how many times we fetch new tones between every quarter note.
-	 * If equal to 4, a single measure will have 16 beats (4 quater notes with each having 4 16th notes)
-	 * If its equal to 4, we fetch every 16th note in a measure (fetch 16 times per measure).
-	 * 1 would be only once per quarter note (fetch 4 times a measure).
-	 * 2 would be twice per beat which would be 8th notes (fetch 8 times per measure) */
 	Tempo *tempo = (Tempo*)temp;
-	double sampleLengthDouble = (tempo->bpm/60);  // beats per second 
-	sampleLengthDouble = 1/sampleLengthDouble; // time length in seconds between "samples" (or fetches)
+	unsigned short int beatsInAQuarterNote = 4;
+	// 'beatsInAQuarterNote' defines how many times we fetch new tones between every quarter note.
+	// If equal to 4, a single measure will have 16 beats (4 quater notes with each having 4 16th notes)
+	// If its equal to 4, we fetch every 16th note in a measure (fetch 16 times per measure).
+	// 1 would be only once per quarter note (fetch 4 times a measure).
+	// 2 would be twice per beat which would be 8th notes (fetch 8 times per measure)
+
+	 /* Sample length calculation */
+	 // Terminology:
+	 // "Sample length" is referring to the time between each new note fetch, or note "sample".
+	 // "Sample beat" is referring to the points in time when new notes are fetched to play. Since the song is most likely in
+	 //		4/4 time signature, you can also call this a 16th note beat.
+	 // "Beat" is referring to a quarter note. */
+	double sampleLengthDouble = (tempo->bpm/60);  // beats per second.
+	sampleLengthDouble = 1/sampleLengthDouble; // time length in seconds between quarter notes
 	sampleLengthDouble *= 1000000; // time length in microseconds between beats (quarter notes)
-	sampleLengthDouble /= beatsInAQuarterNote; // time length in microseconds between subBeats
+	sampleLengthDouble /= beatsInAQuarterNote; // time length in microseconds between sample beats, AKA "samples" (or note fetches)
 	int sampleLength = (int)sampleLengthDouble;
 
-	unsigned int totalBeatsProduced = 1; // total number of subBeats produced ( Assuming beatsInAQuarterNote == 4, 32 for every 2 measures, 4 per beat).
-	unsigned short int currentBeatPosition = 1; // gives the current subBeat position in the standard two measure interval (loops from 1 to 32 when beatsInAQuarterNote = 4)
-	/* Similar to written music, beat 1 starts at time 0 and there is no beat 0. */
+	/* Loop counters */
+	unsigned int totalSampleBeatsProduced = 1; // total number of subBeats produced (Assuming beatsInAQuarterNote == 4, 32 for every 2 measures, 4 per beat). AKA "sample" rate
+	unsigned short int currentSampleBeatPosition = 1; // gives the current subBeat position in the standard two measure interval (loops from 1 to 32 when beatsInAQuarterNote = 4)
+	// Similar to written music, beat 1 starts at time 0 and there is no beat 0.
 
 	Toolkit tk = Toolkit(sampleLength);
 	tk.startStream();
 
+	/* Time keepers */
 	auto sampleLengthMicros = std::chrono::microseconds(sampleLength);
 	auto beatZeroTime = std::chrono::high_resolution_clock::now();
 	auto nextBeatTime = beatZeroTime + 1 * sampleLengthMicros;
 
+
 	while(tempo->isRunning){
 		if (std::chrono::high_resolution_clock::now() >= nextBeatTime){
-			totalBeatsProduced++;
-			if (currentBeatPosition == (beatsInAQuarterNote*8)+1){ // 8 is how many quarter notes are in a 2 meaures
-				currentBeatPosition = 1;
+			// On a sample beat (Or 16th note assuming beatsInAQuarterNote == 4)
+			totalSampleBeatsProduced++;
+			if (currentSampleBeatPosition == (beatsInAQuarterNote*8)+1){ // 8 is how many quarter notes are in a 2 meaures
+				// If a new measure interval has been reached, start back on beat 1 
+				currentSampleBeatPosition = 1;
 			}
-			/* On a beat (Or 16th note assuming beatsInAQuarterNote == 4) */
 			if (DEBUG){
-				if ((currentBeatPosition-1)%beatsInAQuarterNote == 0){
-					std::cout << "********** Quarter beat #" << totalBeatsProduced/beatsInAQuarterNote << " **********\n";
+				if ((currentSampleBeatPosition-1)%beatsInAQuarterNote == 0){
+					std::cout << "********** Quarter beat #" << totalSampleBeatsProduced/beatsInAQuarterNote << " **********\n";
 				} 
 			}
-			nextBeatTime = beatZeroTime + totalBeatsProduced * sampleLengthMicros;
+			nextBeatTime = beatZeroTime + totalSampleBeatsProduced * sampleLengthMicros;
 
-			/* Get all notes for the current beat */
-			std::vector<NoteTone> notesForBeat = tempo->getNoteTonesForBeatPosition(currentBeatPosition);
-			std::vector<PercussionTone> percussionsForBeat = tempo->getPercussionTonesForBeatPosition(currentBeatPosition);
+			// Get all notes for the current beat
+			std::vector<NoteTone> notesForBeat = tempo->getNoteTonesForBeatPosition(currentSampleBeatPosition);
+			std::vector<PercussionTone> percussionsForBeat = tempo->getPercussionTonesForBeatPosition(currentSampleBeatPosition);
 			for (int i = 0; i < notesForBeat.size(); i++){
 				NoteTone note = notesForBeat[i];
-				/* Send to STK! */
 				tk.playNoteTone(&note);
 			}
-			/* Check main melody */
-			if (tempo->mainMelodyTrack.tones.count(currentBeatPosition) != 0){
-				NoteTone mainMelodyNote = tempo->mainMelodyTrack.tones[currentBeatPosition];
+			// Check main melody
+			if (tempo->mainMelodyTrack.tones.count(currentSampleBeatPosition) != 0){
+				NoteTone mainMelodyNote = tempo->mainMelodyTrack.tones[currentSampleBeatPosition];
 				tk.playNoteTone(&mainMelodyNote);
 			}
-			tempo->checkMainMelodyRepition(currentBeatPosition);
+			tempo->checkMainMelodyRepition(currentSampleBeatPosition);
 
 			for (int i = 0; i < percussionsForBeat.size(); i++){
 				PercussionTone percussion = percussionsForBeat[i];
-				/* Send to STK! */
 			}
-			currentBeatPosition++;
+			currentSampleBeatPosition++;
 		}else{
 			std::this_thread::yield();
 			continue;
@@ -184,7 +182,7 @@ std::vector<NoteTone> Tempo::getNoteTonesForBeatPosition(unsigned short int beat
 	for(int i = 0; i < noteTracks.size(); i++){
 		NoteTrack& track = noteTracks[i];
 		if(track.tones.count(beatPosition) == 0){
-			/* checks if the track does not have a note for the beatPosition */
+			// checks if the track does not have a note for the beatPosition
 			if(decrementRepeatCounters && !track.continous){
 				track.repeatCount--;
 				if(track.repeatCount == -1){
@@ -236,7 +234,10 @@ std::vector<PercussionTone> Tempo::getPercussionTonesForBeatPosition(unsigned sh
 }
 
 void Tempo::checkMainMelodyRepition(unsigned short int beatPosition){
-	/* Assumes we already checked that the note exists */
+	// This method decrements the main melody's repeatCounter if it's on the last note of the max track length, and it's continous.
+	// Usually it's two measures long, so on the 32nd beat.
+	// If the main melody has no more repeats, replace it with the permanentMainMelodyTrack which is always continous.
+	// Assumes we already checked that the note exists
 	while(!mtx.try_lock()){
 		continue;
 	}

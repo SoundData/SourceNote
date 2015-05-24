@@ -1,8 +1,13 @@
 #ifndef __PERCUSSIONTONE_H_INCLUDED__
 #define __PERCUSSIONTONE_H_INCLUDED__
 
-#include "Tone.h"
+// PercussionTrack.h
+//
+// A Tone subclass that encapsulates a sound from a file.
+
 #include <string>
+
+#include "Tone.h"
 
 class PercussionTone: public Tone{
 	private:

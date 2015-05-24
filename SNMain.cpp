@@ -1,10 +1,12 @@
-#include "GameMessage.h"
-#include "DataProvider.h"
+#include "SNCore.h"
+
 #include <thread>
 #include <mutex>
 #include <queue>
 #include <iostream>
-#include "SNCore.h"
+
+#include "GameMessage.h"
+#include "DataProvider.h"
 #include "Toolkit.h"
 
 #define MSEC_PROCESS_DELAY 100 // ms to wait between processing events waiting in the message queue

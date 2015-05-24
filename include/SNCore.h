@@ -1,18 +1,24 @@
 #ifndef _SNCORE_H_INCLUDED
 #define _SNCORE_H_INCLUDED
 
-#include "GameMessage.h"
-#include "ToneCreator.h"
-#include "Tempo.h"
+// SNCore.h
+//
+// SNCore is the only class that an event-emitting program should be using.
+// It recieves all events and decides how particular events should affect the music.
+// It's the underlying "brain" of SourceNote's dynamic music generation.
+
 #include <string>
 #include <mutex>
 #include <unistd.h>
+
+#include "GameMessage.h"
+#include "ToneCreator.h"
+#include "Tempo.h"
 
 class SNCore{
 	private:
 		ToneCreator toneCreator;
 		Tempo tempo;
-		std::mutex &mutex;
 		int getBPMForClass(const GameMessage *classMessage);
 		void setInitialMusicForClass(const GameMessage *classMessage);
 

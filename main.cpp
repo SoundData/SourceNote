@@ -1,3 +1,13 @@
+// std lib
+#include <pthread.h>
+#include <unistd.h>
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include <cmath>
+#include <vector>
+#include <mutex>
+
 // SourceNote
 #include "Toolkit.h"
 #include "Tempo.h"
@@ -13,15 +23,6 @@
 #include "Messager.h"
 #include "RtAudio.h"
 
-// std lib
-#include <pthread.h>
-#include <unistd.h>
-#include <iostream>
-#include <thread>
-#include <chrono>
-#include <cmath>
-#include <vector>
-#include <mutex>
 
 
 // This is a main file for the algorithm team's tests.
