@@ -19,13 +19,16 @@
 class NoteTrack{
 	public:
 		NoteTrack(std::vector<NoteTone> toneList);
-		NoteTrack(){};
-		std::unordered_map<unsigned short int, NoteTone> tones;
+		NoteTrack(){ empty = true; }
+		std::unordered_map<unsigned short int, NoteTone> tones(); // For read only access
 		bool continous; // Does it repeat forever?
 		int repeatCount; // If not continous, how many 2 measure intervals it will repeat for (0 means it will play only once and never repeat)
+		bool isEmpty();
 	
 	private:
+		std::unordered_map<unsigned short int, NoteTone> allTones;
 		std::string key;
+		bool empty;
 };
 
 #endif 

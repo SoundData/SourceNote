@@ -19,12 +19,16 @@ using namespace stk;
 Tempo::Tempo(int beatsPerMinute, std::mutex& mutex) : bpm(beatsPerMinute), mtx(mutex) {};
 
 void Tempo::start(){
+	if (mainMelodyTrack.isEmpty() || (noteTracks.empty() && percussionTracks.empty())){
+		std::cout << "Cannot start because no initial music was generated.";
+		exit(1);
+	}
 	isRunning = true;
 	pthread_t thread;
 	int threadResult = pthread_create(&thread, NULL, &Tempo::run, this);
 	if (threadResult){
 		std::cout << "Error: Cannot create thread" << threadResult;
-		exit(-1);
+		exit(1);
 	}
 }
 
@@ -151,8 +155,8 @@ void* Tempo::run(void* temp){
 				tk.playNoteTone(&note);
 			}
 			// Check main melody
-			if (tempo->mainMelodyTrack.tones.count(currentSampleBeatPosition) != 0){
-				NoteTone mainMelodyNote = tempo->mainMelodyTrack.tones[currentSampleBeatPosition];
+			if (tempo->mainMelodyTrack.tones().count(currentSampleBeatPosition) != 0){
+				NoteTone mainMelodyNote = tempo->mainMelodyTrack.tones()[currentSampleBeatPosition];
 				tk.playNoteTone(&mainMelodyNote);
 			}
 			tempo->checkMainMelodyRepition(currentSampleBeatPosition);
@@ -181,7 +185,7 @@ std::vector<NoteTone> Tempo::getNoteTonesForBeatPosition(unsigned short int beat
 	bool decrementRepeatCounters = (beatPosition == 32) ? true : false;
 	for(int i = 0; i < noteTracks.size(); i++){
 		NoteTrack& track = noteTracks[i];
-		if(track.tones.count(beatPosition) == 0){
+		if(track.tones().count(beatPosition) == 0){
 			// checks if the track does not have a note for the beatPosition
 			if(decrementRepeatCounters && !track.continous){
 				track.repeatCount--;
@@ -191,7 +195,7 @@ std::vector<NoteTone> Tempo::getNoteTonesForBeatPosition(unsigned short int beat
 			}
 			continue;
 		}
-		notesForBeat.push_back(track.tones[beatPosition]);
+		notesForBeat.push_back(track.tones()[beatPosition]);
 		if(decrementRepeatCounters && !track.continous){
 			track.repeatCount--;
 			if(track.repeatCount == -1){
@@ -211,7 +215,7 @@ std::vector<PercussionTone> Tempo::getPercussionTonesForBeatPosition(unsigned sh
 	bool decrementRepeatCounters = (beatPosition == 32) ? true : false;
 	for(int i = 0; i < percussionTracks.size(); i++){
 		PercussionTrack& track = percussionTracks[i];
-		if(track.tones.count(beatPosition) == 0){
+		if(track.tones().count(beatPosition) == 0){
 			if(decrementRepeatCounters && !track.continous){
 				track.repeatCount--;
 				if(track.repeatCount == -1){
@@ -220,7 +224,7 @@ std::vector<PercussionTone> Tempo::getPercussionTonesForBeatPosition(unsigned sh
 			}
 			continue;
 		}
-		percussionsForBeat.push_back(track.tones[beatPosition]);
+		percussionsForBeat.push_back(track.tones()[beatPosition]);
 		if(decrementRepeatCounters && !track.continous){
 			track.repeatCount--;
 			if(track.repeatCount == -1){

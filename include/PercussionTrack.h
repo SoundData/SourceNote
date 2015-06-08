@@ -18,9 +18,14 @@
 class PercussionTrack{
 	public:
 		PercussionTrack(std::vector<PercussionTone> toneList);
-		std::unordered_map<unsigned short int, PercussionTone> tones;
+		std::unordered_map<unsigned short int, PercussionTone> tones(); // For read only access
 		bool continous; // does it repeat forever ?
 		int repeatCount; // if not continous, how many 2 measure intervals it will repeat for (0 means it will play only once and never repeat)
+		bool isEmpty();
+
+	private:
+		std::unordered_map<unsigned short int, PercussionTone> allTones;
+		bool empty;
 };
 
 #endif 

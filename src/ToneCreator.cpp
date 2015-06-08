@@ -109,6 +109,10 @@ void ToneCreator::initializeNoteData(){
 	currentScale = kMajor;
 }
 
+bool ToneCreator::mainMelodyExists(){
+	return mainMelody.continous ? true : false;
+}
+
 NoteTone ToneCreator::makeToneWithNote(std::string note){
 	note += "1"; //In octave 1
 	return NoteTone(1,5, kSine, noteFrequencies.at(note), note);
@@ -200,8 +204,12 @@ NoteTrack ToneCreator::makeMainMelodyScaleInNewScale(ScaleType newScale, ScaleTy
 	if(newScale == oldScale || newScale == oldScale){
 		return mainMelody;
 	}
+	if (mainMelody.isEmpty()){
+		std::cout << "Cannot change scale of nonexistent main melody.";
+		exit(1);
+	}
 	std::vector<NoteTone> oldNotes;
-	std::unordered_map<unsigned short int, NoteTone>& noteMap = mainMelody.tones;
+	std::unordered_map<unsigned short int, NoteTone> noteMap = mainMelody.tones();
 	for (unsigned short int i = 1; i <= 32; i++){
 		if(noteMap.count(i) != 0){
 			oldNotes.push_back(noteMap[i]);
@@ -228,7 +236,6 @@ NoteTrack ToneCreator::makeMainMelodyScaleInNewScale(ScaleType newScale, ScaleTy
 		std::string octave = note.getNoteName().substr((noteNameSize-1),1);
 		std::string newNoteName = newKeyNotes[findIndexOfNoteInKey(note,oldKeyNotes)];
 		newNoteName += octave;
-		//std::cout << "New note: " << newNoteName << "\n";
 		newNotes.push_back(NoteTone(note.getStartBeatPosition(), note.getEndBeatPosition(), note.getWaveform(), noteFrequencies.at(newNoteName), newNoteName));
 	}
 	return NoteTrack(newNotes);
@@ -248,6 +255,7 @@ int findIndexOfNoteInKey(NoteTone note, std::vector<std::string> keyNotes){
 			return i;
 		}
 	}
+	//This should never be encountered...
 	std::cout << "Uh Oh!\n"; 
 	return -1;
 }

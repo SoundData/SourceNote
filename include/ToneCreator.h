@@ -59,6 +59,7 @@ class ToneCreator{
 		std::vector <std::string> allKeys;
 		NoteTrack mainMelody;
 		void initializeNoteData();
+		bool mainMelodyExists();
 
 	public:
 		ToneCreator();
@@ -74,7 +75,7 @@ class ToneCreator{
 		// Major scale by default
 		NoteTrack makeRandomMelodyNotesInRandomKeyAndRandomOctave(bool isMainMelody);
 		NoteTrack makeMainMelodyScaleInNewScale(ScaleType newScale, ScaleType oldScale);
-		// DO NOT CALL THE FOLLOWING FUNCTION if no main melody has been created! If you haven't, there is no current key. Bad things will happen
+		// Following function not yet implemented
 		NoteTrack makeRandomMelodyInCurrentKeyAndInRange(unsigned short int minimumNumberOfNotes, unsigned short int maximumNumberOfNotes);
 
 		// Percussion generation functions
